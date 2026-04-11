@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>GHOST TERMINAL</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0b1e;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #ffffff;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        body::-webkit-scrollbar { display: none; }
+
+        /* LOGIN PAGE - BACKGROUND BARU */
+        .login-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('https://i.postimg.cc/5tRW6LLq/images-(8).jpg');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        .login-page::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(3px);
+        }
+        .login-page.hide { opacity: 0; visibility: hidden; }
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .card {
+            background: rgba(16, 19, 31, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            border: 1px solid rgba(139, 158, 255, 0.2);
+            padding: 32px 28px 40px;
+        }
+        .avatar-wrapper { display: flex; justify-content: center; margin-bottom: 24px; }
+        .avatar-square {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(145deg, #1e2130, #0f111a);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid rgba(139, 158, 255, 0.5);
+        }
+        .avatar-square img { width: 100%; height: 100%; object-fit: cover; }
+        .welcome { text-align: center; margin-bottom: 28px; }
+        .welcome h2 { font-size: 26px; font-weight: 700; background: linear-gradient(135deg, #fff, #a0a0c0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .welcome p { font-size: 13px; color: #8f9eff; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 12px; color: #8b9eff; margin-bottom: 8px; }
+        .input-wrapper {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(42, 47, 71, 0.8);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+        }
+        .input-wrapper input {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 100%;
+            font-size: 15px;
+            outline: none;
+        }
+        .char-counter {
+            text-align: right;
+            font-size: 10px;
+            color: #6e7390;
+            margin-top: 4px;
+        }
+        .char-counter.valid { color: #4ade80; }
+        .char-counter.invalid { color: #ef4444; }
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(95deg, #5f7ef2, #3b56c4);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .login-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .buy-link { text-align: center; margin-top: 16px; }
+        .buy-link a { color: #8f9eff; font-size: 13px; text-decoration: none; }
+
+        /* SPLASH SCREEN */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0c12;
+            z-index: 3000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .splash-screen.show { opacity: 1; visibility: visible; }
+        .splash-screen.glitch-exit {
+            animation: glitchFlash 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes glitchFlash {
+            0% { opacity: 1; transform: scale(1); filter: blur(0px);}
+            20% { opacity: 1; transform: scale(1.03); filter: blur(3px); background: #ff00ff20;}
+            40% { opacity: 1; transform: scale(0.97); filter: blur(1px); background: #00ffff20;}
+            60% { opacity: 1; transform: scale(1.01); filter: blur(0px);}
+            100% { opacity: 0; transform: scale(0.95); filter: blur(0px); visibility: hidden;}
+        }
+        .loader-wrapper {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            z-index: 10;
+        }
+        .banner-box {
+            width: 100%;
+            height: 220px;
+            background: #2a2f3e;
+            border-radius: 35px;
+            overflow: hidden;
+            border: 1px solid rgba(139, 158, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            margin-bottom: 25px;
+        }
+        .banner-box video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .mute-toggle {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+            backdrop-filter: blur(5px);
+        }
+        .info-text h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            margin-bottom: 5px;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(59,130,246,0.5);
+        }
+        .info-text h1 span { color: #3b82f6; }
+        .info-text p {
+            font-size: 11px;
+            color: #8b9eff;
+            text-transform: uppercase;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+        }
+        .skip-btn {
+            background: rgba(30, 41, 59, 0.9);
+            color: #8b9eff;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            padding: 14px 35px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 11px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+            transition: 0.3s;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        .skip-btn:hover {
+            background: #3b82f6;
+            color: white;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* MAIN APP */
+        .app-wrapper { display: none; opacity: 0; transition: opacity 0.5s; }
+        .app-wrapper.show { display: block; opacity: 1; }
+        .app-container { width: 100%; max-width: 500px; margin: 0 auto; background: #0a0b1e; min-height: 100vh; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #0a0b1e;
+            border-bottom: 1px solid #1e293b;
+        }
+        .brand-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff, #8b9eff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: #0a0b1e;
+            z-index: 1000;
+            transition: 0.3s;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        }
+        .sidebar.active { left: 0; }
+        .sidebar-header {
+            background: linear-gradient(to right, #1e40af, #3b82f6);
+            padding: 40px 20px 20px;
+        }
+        .sidebar-header h2 { margin: 0; font-size: 1.5rem; color: white; }
+        .sidebar-user-info p { margin: 5px 0; font-size: 0.9rem; color: #cbd5e1; }
+        .sidebar-menu { padding: 20px; }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            color: white;
+            gap: 15px;
+            border-bottom: 1px solid #1e293b;
+            cursor: pointer;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 999;
+        }
+        .container { padding: 15px; padding-bottom: 80px; }
+        .page { display: none; }
+        .page.active-page { display: block; }
+
+        /* ========= HOME PAGE - DARKVERSE STYLE ========= */
+        .darkverse-home {
+            padding: 10px 0;
+        }
+        .darkverse-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .darkverse-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #ffffff, #8b9eff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+        }
+        .darkverse-subtitle {
+            font-size: 11px;
+            color: #6e7390;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Banner Gambar Persegi Panjang */
+        .banner-image-card {
+            width: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            aspect-ratio: 16 / 5;
+            background-color: #1e293b;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .banner-image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Action Card dengan Background Gambar */
+        .action-card {
+            background: #0f1222;
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #252c3e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .action-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 11, 30, 0.6);
+            border-radius: 20px;
+            z-index: 0;
+        }
+        .action-card > * {
+            position: relative;
+            z-index: 1;
+        }
+        .action-card:hover {
+            border-color: #3b82f6;
+            transform: scale(1.01);
+        }
+        .action-card:hover::before {
+            background: rgba(10, 11, 30, 0.5);
+        }
+        .action-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .action-icon.buy {
+            background: rgba(249, 115, 22, 0.1);
+        }
+        .action-text h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+        }
+        .action-text p {
+            font-size: 11px;
+            color: #8b9eff;
+        }
+        .action-arrow {
+            color: #8b9eff;
+        }
+
+        /* WHATSAPP PAGE */
+        .profile-card {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .avatar {
+            width: 50px;
+            height: 50px;
+            background: #000;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .avatar img { width: 100%; }
+        .badge {
+            font-size: 0.7rem;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+        .banner-video {
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+            aspect-ratio: 16/9;
+        }
+        .banner-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .banner-text {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 2;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+        .control-panel {
+            background: #161b33;
+            border-radius: 15px;
+            padding: 20px;
+        }
+        .input-wrapper-cp {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+        }
+        input, select {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 100%;
+            outline: none;
+            padding-left: 10px;
+            font-size: 14px;
+        }
+        .btn-send {
+            width: 100%;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        /* INFO PAGE */
+        .rules-container {
+            background: #161b33;
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid #252c3e;
+            margin-bottom: 20px;
+        }
+        .rules-title {
+            font-size: 20px; font-weight: 800;
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .rule-item { margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #1e293b; }
+        .rule-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+        .rule-number { background: rgba(239,68,68,0.2); color: #ef4444; font-weight: 700; font-size: 14px; padding: 2px 10px; border-radius: 20px; }
+        .rule-title { font-weight: 700; font-size: 16px; color: #f0f0ff; }
+        .rule-desc { color: #cbd5e1; font-size: 13px; margin-left: 28px; }
+        .penalty-box { background: rgba(239,68,68,0.1); border-left: 3px solid #ef4444; padding: 12px 16px; margin-top: 16px; border-radius: 12px; }
+        .disclaimer { background: #0f1220; border-radius: 20px; padding: 16px; text-align: center; font-size: 11px; color: #8b9eff; margin-top: 16px; }
+
+        /* TOOLS PAGE */
+        .ddos-container { max-width: 500px; margin: 0 auto; padding: 20px 16px 100px; }
+        .ddos-header { text-align: center; margin-bottom: 30px; }
+        .ddos-header .ddos-logo { width: 70px; height: 70px; background: linear-gradient(135deg, #dc2626, #b91c1c); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; }
+        .ddos-header h1 { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .ddos-header p { font-size: 12px; color: #94a3b8; }
+        .ddos-card { background: #0f1222; border-radius: 24px; border: 1px solid #252c3e; overflow: hidden; margin-bottom: 20px; }
+        .ddos-card-header { padding: 18px 20px; border-bottom: 1px solid #1e293b; }
+        .ddos-card-header h2 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; color: #ef4444; }
+        .ddos-card-body { padding: 20px; }
+        .method-badges { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+        .method-badge { background: #1a1e30; padding: 6px 14px; border-radius: 30px; font-size: 12px; cursor: pointer; }
+        .method-badge.active { background: #dc2626; color: white; }
+        .slider-group { margin-bottom: 20px; }
+        .slider-group label { display: block; font-size: 12px; color: #8b9eff; margin-bottom: 8px; }
+        input[type="range"] { width: 100%; height: 4px; -webkit-appearance: none; background: #2a2f47; border-radius: 10px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: #ef4444; border-radius: 50%; cursor: pointer; }
+        .btn-attack { width: 100%; background: linear-gradient(95deg, #dc2626, #b91c1c); border: none; padding: 14px; border-radius: 40px; color: white; font-weight: 700; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-stop { width: 100%; background: #2a2f47; border: 1px solid #3a4058; padding: 12px; border-radius: 40px; color: #94a3b8; font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .status-box { background: #0a0c15; border-radius: 16px; padding: 16px; margin-top: 20px; text-align: center; border: 1px solid #2a2f47; }
+        .status-value.idle { color: #4ade80; }
+        .status-value.attacking { color: #ef4444; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
+        .stat-card { background: #0a0c15; border-radius: 16px; padding: 12px; text-align: center; border: 1px solid #2a2f47; }
+        .stat-card .stat-number { font-size: 22px; font-weight: 700; color: #ef4444; }
+        .ddos-log { font-size: 11px; color: #94a3b8; max-height: 150px; overflow-y: auto; font-family: monospace; }
+
+        /* SENDER NODES MODAL */
+        .modal-sender {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 10000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-sender.show { display: flex; }
+        .modal-sender .modal-card {
+            background: #0f1222;
+            border-radius: 32px;
+            border: 1px solid #252c3e;
+            width: 100%;
+            max-width: 500px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        }
+        .modal-sender .modal-header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid #1e293b;
+            position: relative;
+        }
+        .modal-sender .modal-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #8b9eff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-align: center;
+        }
+        .modal-sender .modal-header .sub {
+            font-size: 12px;
+            color: #6e7390;
+            margin-top: 6px;
+            text-align: center;
+        }
+        .btn-back-sender {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            background: rgba(139, 158, 255, 0.1);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #8b9eff;
+        }
+        .modal-sender .modal-body { padding: 24px; }
+        .empty-state-sender { text-align: center; padding: 32px 20px; }
+        .empty-icon {
+            width: 70px;
+            height: 70px;
+            background: #1a1e30;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+        .empty-state-sender h3 { font-size: 20px; font-weight: 700; color: white; margin-bottom: 10px; }
+        .empty-state-sender p { font-size: 13px; color: #94a3b8; margin-bottom: 24px; }
+        .btn-initialize {
+            background: linear-gradient(95deg, #2a2f47, #1e2338);
+            border: 1px solid #3a4058;
+            padding: 12px 28px;
+            border-radius: 40px;
+            color: #8b9eff;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .form-title { font-size: 18px; font-weight: 700; color: white; margin-bottom: 20px; }
+        .btn-cancel-sender {
+            flex: 1;
+            background: transparent;
+            border: 1px solid #3a4058;
+            padding: 14px;
+            border-radius: 40px;
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-generate {
+            flex: 1;
+            background: linear-gradient(95deg, #3b82f6, #2563eb);
+            border: none;
+            padding: 14px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .btn-primary-sender {
+            width: 100%;
+            background: linear-gradient(95deg, #3b82f6, #2563eb);
+            border: none;
+            padding: 14px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .pairing-code {
+            background: #0a0c15;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #2a2f47;
+            text-align: center;
+        }
+        .code-box {
+            background: #0f111a;
+            padding: 16px;
+            border-radius: 16px;
+            font-family: monospace;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: 4px;
+            color: #4ade80;
+            margin-bottom: 16px;
+            border: 1px solid #2a2f47;
+        }
+        .btn-copy {
+            background: #1e2338;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            color: #8b9eff;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .node-list { margin-top: 24px; }
+        .node-item {
+            background: #0f1220;
+            border-radius: 20px;
+            padding: 14px 18px;
+            margin-bottom: 12px;
+            border: 1px solid #252c3e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .node-info { display: flex; align-items: center; gap: 12px; }
+        .node-avatar {
+            width: 40px;
+            height: 40px;
+            background: #1a1e30;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .node-details h4 { font-size: 14px; font-weight: 700; color: white; }
+        .node-details p { font-size: 10px; color: #6e7390; }
+        .node-status {
+            font-size: 10px;
+            color: #4ade80;
+            background: rgba(74,222,128,0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+        .button-group { display: flex; gap: 12px; margin-top: 8px; }
+        .hidden { display: none; }
+        .input-group-sender { margin-bottom: 24px; }
+        .input-group-sender label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #8b9eff;
+            margin-bottom: 8px;
+        }
+        .input-wrapper-sender {
+            background: #0f172a;
+            border: 1px solid #2a2f47;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+        }
+        .input-wrapper-sender input {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 100%;
+            font-size: 16px;
+            outline: none;
+        }
+
+        /* PROFILE PAGE MODAL */
+        .profile-page-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 11000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .profile-page-modal.show { display: flex; }
+        .profile-page-modal .profile-card-page {
+            background: #0f1222;
+            border-radius: 32px;
+            border: 1px solid #252c3e;
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
+        }
+        .profile-page-modal .profile-header {
+            padding: 24px 24px 16px;
+            border-bottom: 1px solid #1e293b;
+            text-align: center;
+            position: relative;
+        }
+        .profile-page-modal .profile-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #8b9eff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .profile-page-modal .profile-header p { font-size: 12px; color: #6e7390; margin-top: 4px; }
+        .btn-back-profile {
+            position: absolute;
+            top: 24px;
+            left: 24px;
+            background: rgba(139, 158, 255, 0.1);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #8b9eff;
+        }
+        .profile-avatar-page { display: flex; justify-content: center; margin-top: 20px; margin-bottom: 16px; }
+        .profile-avatar-circle-page {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(145deg, #2a2f47, #1a1e30);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid #8b9eff;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+        .profile-name-page { text-align: center; margin-bottom: 24px; }
+        .profile-name-page h2 { font-size: 22px; font-weight: 700; color: white; }
+        .profile-name-page .badge-page {
+            display: inline-block;
+            font-size: 11px;
+            color: #8b9eff;
+            background: rgba(139, 158, 255, 0.15);
+            padding: 3px 12px;
+            border-radius: 20px;
+            margin-top: 6px;
+        }
+        .profile-info-list-page { padding: 0 24px; }
+        .profile-info-item-page {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 0;
+            border-bottom: 1px solid #1e293b;
+        }
+        .profile-info-label-page { font-size: 13px; font-weight: 500; color: #8b9eff; }
+        .profile-info-value-page { font-size: 14px; font-weight: 600; color: white; font-family: monospace; }
+        .btn-change-page {
+            width: calc(100% - 48px);
+            margin: 16px 24px 24px;
+            background: linear-gradient(95deg, #2a2f47, #1e2338);
+            border: 1px solid #3a4058;
+            padding: 14px;
+            border-radius: 40px;
+            color: #8b9eff;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        /* CHANGE PASSWORD MODAL */
+        .modal-change-pw {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(8px);
+            z-index: 12000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-change-pw.show { display: flex; }
+        .modal-change-pw .modal-card-pw {
+            background: #0f1222;
+            border-radius: 32px;
+            border: 1px solid #252c3e;
+            width: 340px;
+            padding: 28px 24px;
+        }
+        .modal-change-pw .modal-card-pw h2 {
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(135deg, #fff, #8b9eff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .modal-change-pw .modal-card-pw .sub { text-align: center; font-size: 12px; color: #94a3b8; margin-bottom: 24px; }
+        .modal-input-group { margin-bottom: 20px; }
+        .modal-input-group label { display: block; font-size: 12px; font-weight: 600; color: #8b9eff; margin-bottom: 8px; }
+        .modal-input-wrapper {
+            background: #0f172a;
+            border: 1px solid #2a2f47;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+        }
+        .modal-input-wrapper input {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 100%;
+            font-size: 14px;
+            outline: none;
+        }
+        .modal-btn {
+            width: 100%;
+            background: linear-gradient(95deg, #5f7ef2, #3b56c4);
+            border: none;
+            border-radius: 40px;
+            padding: 14px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        .modal-cancel {
+            width: 100%;
+            background: transparent;
+            border: 1px solid #3a4058;
+            border-radius: 40px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 500px;
+            background: #0a0b1e;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0 20px;
+            border-top: 1px solid #1e293b;
+            z-index: 100;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.7rem;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+        .nav-item.active { color: #3b82f6; }
+        .bottom-spacer { height: 80px; }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            width: 80%;
+            max-width: 300px;
+        }
+        .toast {
+            background: #ef4444;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .toast.success { background: #10b981; }
+        .clickable { cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div class="login-page" id="loginPage">
+    <div class="login-container">
+        <div class="card">
+            <div class="avatar-wrapper">
+                <div class="avatar-square">
+                    <img src="https://i.postimg.cc/CLqTdRxN/images-(9).jpg" alt="Profile">
+                </div>
+            </div>
+            <div class="welcome"><h2>Welcome Back</h2><p>Login to continue</p></div>
+            <div class="input-group">
+                <label>Username</label>
+                <div class="input-wrapper"><i data-lucide="user" size="18"></i><input type="text" id="loginUsername" placeholder="Enter username"></div>
+                <div class="char-counter" id="usernameCounter">0/8</div>
+            </div>
+            <div class="input-group">
+                <label>Password</label>
+                <div class="input-wrapper"><i data-lucide="lock" size="18"></i><input type="password" id="loginPassword" placeholder="Enter password"></div>
+                <div class="char-counter" id="passwordCounter">0/8</div>
+            </div>
+            <button class="login-btn" id="loginBtn">LOGIN</button>
+            <div class="buy-link"><a href="#" id="buyLink">Buy Account</a></div>
+        </div>
+    </div>
+</div>
+
+<!-- SPLASH SCREEN -->
+<div class="splash-screen" id="splashScreen">
+    <div class="loader-wrapper">
+        <div class="info-text">
+            <h1>GHOST<span>TERMINAL</span></h1>
+            <p id="statusText">INITIALIZING SYSTEM...</p>
+        </div>
+        <div class="banner-box">
+            <div class="mute-toggle" id="muteBtn">
+                <i data-lucide="volume-x"></i>
+            </div>
+            <video id="splashVideo" autoplay muted playsinline loop>
+                <source src="https://res.cloudinary.com/dwiozm4vz/video/upload/v1774165741/zgsqyq67dvuqodati1n7.mp4" type="video/mp4">
+            </video>
+        </div>
+        <div class="progress-container">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <button class="skip-btn" id="skipBtn">
+            Lewati Video <i data-lucide="chevron-right" size="16"></i>
+        </button>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app-wrapper" id="appWrapper">
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header"><h2>GHOST TERMINAL</h2><div class="sidebar-user-info"><p>User: <span id="sidebarUsername">UNKNOW</span></p><p>Role: MEMBER</p><p>Expired: Lifetime</p></div></div>
+        <div class="sidebar-menu">
+            <div class="menu-item" id="devPageBtn"><i data-lucide="shopping-cart"></i> Dev Page</div>
+            <div class="menu-item" id="profileMenuBtn"><i data-lucide="user-circle"></i> Profile</div>
+            <div class="menu-item" id="logoutBtn"><i data-lucide="log-out"></i> Logout</div>
+        </div>
+    </div>
+    <div class="app-container">
+        <header>
+            <i data-lucide="menu" onclick="toggleMenu()" style="cursor:pointer"></i>
+            <div class="brand-name">GHOST TERMINAL</div>
+            <div style="display:flex; gap:15px">
+                <i data-lucide="bell" class="clickable" id="bellIcon"></i>
+                <i data-lucide="user-circle" id="profileIcon" style="cursor:pointer"></i>
+            </div>
+        </header>
+        <div class="container">
+            <!-- HOME PAGE - DARKVERSE STYLE (tanpa Account Info) -->
+            <div id="pageHome" class="page active-page">
+                <div class="darkverse-home">
+                    <div class="darkverse-header">
+                        <div class="darkverse-title">GhostTerminal</div>
+                        <div class="darkverse-subtitle">Buy Access Chat Accounts Gilexs8</div>
+                    </div>
+
+                    <!-- Banner Gambar Persegi Panjang -->
+                    <div class="banner-image-card">
+                        <img src="https://i.postimg.cc/rssP7Cjg/images-(10).jpg" alt="Banner" id="homeBannerImg" onerror="this.src='https://placehold.co/800x200/1e293b/8b9eff?text=GHOST+TERMINAL'">
+                    </div>
+
+                    <!-- Manage Sender Button (Background Image) -->
+                    <div class="action-card" id="manageSenderBtn" style="background-image: linear-gradient(rgba(10, 11, 30, 0.7), rgba(10, 11, 30, 0.7)), url('https://i.postimg.cc/yNgfs8Cj/images-(8).jpg'); background-size: cover; background-position: center;">
+                        <div class="action-left">
+                            <div class="action-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8b9eff" stroke-width="1.5">
+                                    <path d="M20 12V8H4V12M20 12L12 18L4 12M20 12H4M12 18V12"/>
+                                    <rect x="2" y="4" width="20" height="16" rx="2" stroke="currentColor" fill="none"/>
+                                    <circle cx="12" cy="12" r="2" fill="#8b9eff" stroke="none"/>
+                                </svg>
+                            </div>
+                            <div class="action-text">
+                                <h4>MANAGE BUG SENDER</h4>
+                                <p></p>
+                            </div>
+                        </div>
+                        <div class="action-arrow">
+                            <i data-lucide="chevron-right" size="20"></i>
+                        </div>
+                    </div>
+
+                    <!-- Channel Whatsapp Button (Background Image) -->
+                    <div class="action-card" id="channelWhatsappBtn" style="background-image: linear-gradient(rgba(10, 11, 30, 0.7), rgba(10, 11, 30, 0.7)), url('https://i.postimg.cc/DzLqxJK5/images-(7).jpg'); background-size: cover; background-position: center;">
+                        <div class="action-left">
+                            <div class="action-icon buy">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="1.5">
+                                    <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" fill="none"/>
+                                    <path d="M2 17L12 22L22 17" stroke="currentColor" fill="none"/>
+                                    <path d="M2 12L12 17L22 12" stroke="currentColor" fill="none"/>
+                                    <circle cx="12" cy="12" r="2" fill="#f97316" stroke="none"/>
+                                </svg>
+                            </div>
+                            <div class="action-text">
+                                <h4>CHANNEL WHATSAPP</h4>
+                                <p></p>
+                            </div>
+                        </div>
+                        <div class="action-arrow">
+                            <i data-lucide="chevron-right" size="20"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bottom-spacer"></div>
+            </div>
+            
+            <!-- WHATSAPP PAGE -->
+            <div id="pageWhatsApp" class="page">
+                <div class="profile-card">
+                    <div class="user-section">
+                        <div class="avatar"><img src="https://i.postimg.cc/mgHP3vQ5/20260411-162148.jpg" alt="avatar"></div>
+                        <div>
+                            <div style="font-weight: bold;" id="waUsername">UNKNOW</div>
+                            <div class="badge">MEMBER</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right; font-size: 0.7rem;">
+                        EXPIRES<br><b>2028-12-25</b>
+                    </div>
+                </div>
+                <div class="banner-video">
+                    <video autoplay muted loop playsinline id="waVideo">
+                        <source src="https://c.termai.cc/v2/Qx9Xhlg.mp4" type="video/mp4">
+                    </video>
+                    <div class="banner-text">GHOST TERMINAL</div>
+                </div>
+                <div class="control-panel">
+                    <h3>Control Panel</h3>
+                    <div class="input-group">
+                        <label>Target Number</label>
+                        <div class="input-wrapper-cp">
+                            <i data-lucide="smartphone" size="18"></i>
+                            <input type="text" id="targetNumber" placeholder="e.g. +62xxxxxxxxxx">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Select Bug</label>
+                        <div class="input-wrapper-cp">
+                            <select id="bugSelect">
+                                <option value="">Pilih Bug</option>
+                                <option value="FORCE CLOSE">FORCE CLOSE</option>
+                                <option value="BLANK UI">BLANK UI</option>
+                                <option value="DELAY INVISIBLE">DELAY INVISIBLE</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn-send" id="sendBugBtn">
+                        <i data-lucide="send"></i> SEND BUG
+                    </button>
+                    <div id="successMsg" style="color:#4ade80; text-align:center; margin-top:12px; display:none"></div>
+                </div>
+                <div class="bottom-spacer"></div>
+            </div>
+            
+            <!-- INFO PAGE -->
+            <div id="pageInfo" class="page">
+                <div class="rules-container">
+                    <div class="rules-title">INFO</div>
+                    <div class="rule-item"><div class="rule-header"><span class="rule-number">01</span><span class="rule-title">NO ACCOUNT BARTERING</span></div><div class="rule-desc">Akun eksklusif Ghost Terminal tidak boleh ditukar dengan barang, jasa, atau akun lain.</div></div>
+                    <div class="rule-item"><div class="rule-header"><span class="rule-number">02</span><span class="rule-title">STRICTLY PERSONAL USE</span></div><div class="rule-desc">Setiap akun terenkripsi untuk satu pengguna dan terikat Device ID.</div></div>
+                    <div class="rule-item"><div class="rule-header"><span class="rule-number">03</span><span class="rule-title">RESELLING PROHIBITED</span></div><div class="rule-desc">Member reguler dilarang memperjualbelikan akun.</div></div>
+                    <div class="rule-item"><div class="rule-header"><span class="rule-number">04</span><span class="rule-title">ILLEGAL DURATION SALES</span></div><div class="rule-desc">Dilarang menjual akses eceran (harian, mingguan, trial).</div></div>
+                    <div class="rule-item"><div class="rule-header"><span class="rule-number">05</span><span class="rule-title">PRICE DUMPING BAN</span></div><div class="rule-desc">Dilarang merusak standar harga pasar.</div></div>
+                    <div class="penalty-box"><p>VIOLATION PENALTY</p><p>AKUN AKAN DIHAPUS PERMANEN</p><p>TIDAK ADA PENGEMBALIAN SALDO</p></div>
+                </div>
+                <div class="disclaimer"><p>Peraturan ini dibuat untuk menjaga keamanan ekosistem Ghost Terminal. Dengan mengakses, Anda menyetujui protokol di atas.</p></div>
+                <div class="bottom-spacer"></div>
+            </div>
+            
+            <!-- TOOLS PAGE -->
+            <div id="pageTools" class="page">
+                <div class="ddos-container">
+                    <div class="ddos-header">
+                        <div class="ddos-logo"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" fill="none"/><path d="M2 17L12 22L22 17" stroke="white" fill="none"/><path d="M2 12L12 17L22 12" stroke="white" fill="none"/><circle cx="12" cy="12" r="2" fill="white" stroke="none"/></svg></div>
+                        <h1>💀 DDoS ATTACK PANEL </h1>
+                        <p>Layer 7 & Layer 4 Attack System | Ghost Terminal</p>
+                    </div>
+                    <div class="ddos-card"><div class="ddos-card-header"><h2><i data-lucide="target"></i> TARGET</h2></div><div class="ddos-card-body"><div class="input-group"><label>IP / DOMAIN</label><div class="input-wrapper-cp"><i data-lucide="globe" size="18"></i><input type="text" id="targetInput" placeholder="192.168.1.1 atau example.com"></div></div><div class="input-group"><label>PORT</label><div class="input-wrapper-cp"><i data-lucide="plug" size="18"></i><input type="number" id="portInput" placeholder="80" value="80"></div></div></div></div>
+                    <div class="ddos-card"><div class="ddos-card-header"><h2><i data-lucide="zap"></i> ATTACK METHOD</h2></div><div class="ddos-card-body"><div class="method-badges" id="methodContainer"><div class="method-badge active" data-method="HTTP">HTTP FLOOD</div><div class="method-badge" data-method="TCP">TCP SYN</div><div class="method-badge" data-method="UDP">UDP FLOOD</div><div class="method-badge" data-method="SLOW">SLOWLORIS</div></div><div class="slider-group"><label>THREADS <span id="threadsValue">100</span></label><input type="range" id="threadsSlider" min="10" max="1000" value="100" step="10"></div><div class="slider-group"><label>DURATION (detik)</label><input type="range" id="durationSlider" min="10" max="300" value="60" step="10"></div></div></div>
+                    <div class="ddos-card"><div class="ddos-card-header"><h2><i data-lucide="play-circle"></i> CONTROL</h2></div><div class="ddos-card-body"><button class="btn-attack" id="attackBtn"><i data-lucide="flame"></i> START ATTACK</button><button class="btn-stop" id="stopBtn"><i data-lucide="square"></i> STOP ATTACK</button><div class="status-box"><div class="status-label">STATUS</div><div class="status-value idle" id="statusValue">● IDLE</div></div><div class="stats-grid"><div class="stat-card"><div class="stat-number" id="packetsSent">0</div><div class="stat-label">PACKETS SENT</div></div><div class="stat-card"><div class="stat-number" id="attackTime">0s</div><div class="stat-label">ATTACK TIME</div></div></div></div></div>
+                    <div class="ddos-card"><div class="ddos-card-header"><h2><i data-lucide="terminal"></i> ATTACK LOG</h2></div><div class="ddos-card-body"><div class="ddos-log" id="logContainer"><div>[+] DDoS Panel siap digunakan</div><div>[*] Pilih target dan method serangan</div></div></div></div>
+                </div>
+                <div class="bottom-spacer"></div>
+            </div>
+        </div>
+    </div>
+    <div id="toast-container" class="toast-container"></div>
+    <nav class="bottom-nav">
+        <div class="nav-item" id="navHome"><i data-lucide="home"></i><span>Home</span></div>
+        <div class="nav-item" id="navWhatsApp"><i data-lucide="message-square"></i><span>WhatsApp</span></div>
+        <div class="nav-item" id="navInfo"><i data-lucide="info"></i><span>Info</span></div>
+        <div class="nav-item" id="navTools"><i data-lucide="wrench"></i><span>Ddos</span></div>
+    </nav>
+</div>
+
+<!-- SENDER NODES MODAL -->
+<div class="modal-sender" id="senderModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <button class="btn-back-sender" id="backSenderBtn">
+                <i data-lucide="arrow-left" size="20"></i>
+            </button>
+            <h1>SENDER NODES</h1>
+            <div class="sub">Device Management System</div>
+        </div>
+        <div class="modal-body" id="modalBody">
+            <div id="emptyStateSender">
+                <div class="empty-state-sender">
+                    <div class="empty-icon">
+                        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#8b9eff" stroke-width="1.5">
+                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" fill="none"/>
+                            <path d="M2 17L12 22L22 17" stroke="currentColor" fill="none"/>
+                            <path d="M2 12L12 17L22 12" stroke="currentColor" fill="none"/>
+                            <path d="M12 12V22" stroke="currentColor"/>
+                        </svg>
+                    </div>
+                    <h3>NO ACTIVE NODES</h3>
+                    <p>Sistem tidak mendeteksi koneksi pengirim.<br>Tambahkan WhatsApp node pertama Anda.</p>
+                    <button class="btn-initialize" id="showFormSenderBtn">INITIALIZE SENDER</button>
+                </div>
+            </div>
+
+            <div id="formStateSender" class="hidden">
+                <div class="form-title">NEW SENDER</div>
+                <p style="font-size: 12px; color: #94a3b8; margin-bottom: 20px;">Masukkan nomor WhatsApp target yang ingin dihubungkan sebagai Sender Node.</p>
+                <div class="input-group-sender">
+                    <label>PHONE NUMBER</label>
+                    <div class="input-wrapper-sender">
+                        <input type="tel" id="phoneNumberSender" placeholder="+62xxxxxxxxxx">
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button class="btn-cancel-sender" id="cancelSenderBtn">CANCEL</button>
+                    <button class="btn-generate" id="generatePairingBtn">GENERATE PAIRING</button>
+                </div>
+            </div>
+
+            <div id="pairingStateSender" class="hidden">
+                <div class="form-title">PAIRING CODE</div>
+                <div class="pairing-code">
+                    <p>🔐 Kode pairing untuk menghubungkan device:</p>
+                    <div class="code-box" id="codeDisplaySender">XXXXXX</div>
+                    <button class="btn-copy" id="copyCodeSenderBtn">📋 COPY CODE</button>
+                </div>
+                <button class="btn-primary-sender" id="finishPairingSenderBtn">INITIALIZE SENDER</button>
+            </div>
+
+            <div id="nodesStateSender" class="hidden">
+                <div class="node-list" id="nodeListContainer"></div>
+                <button class="btn-primary-sender" id="addNewNodeSenderBtn">+ ADD NEW SENDER</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PROFILE PAGE MODAL -->
+<div class="profile-page-modal" id="profilePageModal">
+    <div class="profile-card-page">
+        <div class="profile-header">
+            <button class="btn-back-profile" id="backProfileBtn">
+                <i data-lucide="arrow-left" size="20"></i>
+            </button>
+            <h1>MY PROFILE</h1>
+            <p>Account information & settings</p>
+        </div>
+        <div class="profile-avatar-page">
+            <div class="profile-avatar-circle-page">
+                <svg width="45" height="45" viewBox="0 0 24 24" fill="none" stroke="#8b9eff" stroke-width="1.5">
+                    <path d="M12 12C14.21 12 16 10.21 16 8C16 5.79 14.21 4 12 4C9.79 4 8 5.79 8 8C8 10.21 9.79 12 12 12ZM12 14C9.33 14 4 15.34 4 18V20H20V18C20 15.34 14.67 14 12 14Z" fill="none" stroke="#8b9eff"/>
+                </svg>
+            </div>
+        </div>
+        <div class="profile-name-page">
+            <h2 id="profileNameDisplay">GILEXSB</h2>
+            <span class="badge-page" id="profileRoleDisplay">MEMBER</span>
+        </div>
+        <div class="profile-info-list-page">
+            <div class="profile-info-item-page">
+                <span class="profile-info-label-page">Username</span>
+                <span class="profile-info-value-page" id="profileUsernameDisplay">GI......</span>
+            </div>
+            <div class="profile-info-item-page">
+                <span class="profile-info-label-page">Password</span>
+                <span class="profile-info-value-page" id="profilePasswordDisplay">***********</span>
+            </div>
+            <div class="profile-info-item-page">
+                <span class="profile-info-label-page">Role</span>
+                <span class="profile-info-value-page" id="profileRoleValueDisplay">MEMBER</span>
+            </div>
+            <div class="profile-info-item-page">
+                <span class="profile-info-label-page">Expired</span>
+                <span class="profile-info-value-page" id="profileExpiryDisplay">2028-12-25</span>
+            </div>
+            <div class="profile-info-item-page">
+                <span class="profile-info-label-page">Session Key</span>
+                <span class="profile-info-value-page">cc483459...</span>
+            </div>
+        </div>
+        <button class="btn-change-page" id="changePasswordPageBtn">CHANGE PASSWORD</button>
+    </div>
+</div>
+
+<!-- CHANGE PASSWORD MODAL -->
+<div class="modal-change-pw" id="changePwModal">
+    <div class="modal-card-pw">
+        <h2>CHANGE PASSWORD</h2>
+        <div class="sub">SECURITY UPDATE</div>
+        <div class="sub" style="margin-top: -12px; margin-bottom: 20px;">Masukkan password lama dan baru.</div>
+        <div class="modal-input-group">
+            <label>Old Password</label>
+            <div class="modal-input-wrapper">
+                <input type="password" id="oldPasswordInput" placeholder="Enter old password">
+            </div>
+        </div>
+        <div class="modal-input-group">
+            <label>New Password</label>
+            <div class="modal-input-wrapper">
+                <input type="password" id="newPasswordInput" placeholder="Enter new password">
+            </div>
+        </div>
+        <div class="modal-input-group">
+            <label>Confirm Password</label>
+            <div class="modal-input-wrapper">
+                <input type="password" id="confirmPasswordInput" placeholder="Confirm new password">
+            </div>
+        </div>
+        <button class="modal-btn" id="updatePwBtn">UPDATE PASSWORD</button>
+        <button class="modal-cancel" id="cancelPwModalBtn">Cancel</button>
+    </div>
+</div>
+
+<script>
+(function() {
+    function refreshIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons(); }
+    refreshIcons();
+
+    const loginPage = document.getElementById('loginPage');
+    const splashScreen = document.getElementById('splashScreen');
+    const appWrapper = document.getElementById('appWrapper');
+    const loginUsername = document.getElementById('loginUsername');
+    const loginPassword = document.getElementById('loginPassword');
+    const usernameCounter = document.getElementById('usernameCounter');
+    const passwordCounter = document.getElementById('passwordCounter');
+    const loginBtn = document.getElementById('loginBtn');
+    const buyLink = document.getElementById('buyLink');
+    const sidebarUsername = document.getElementById('sidebarUsername');
+    const waUsername = document.getElementById('waUsername');
+    const bellIcon = document.getElementById('bellIcon');
+    const manageSenderBtn = document.getElementById('manageSenderBtn');
+    const channelWhatsappBtn = document.getElementById('channelWhatsappBtn');
+    const senderModal = document.getElementById('senderModal');
+    const backSenderBtn = document.getElementById('backSenderBtn');
+    const profileIcon = document.getElementById('profileIcon');
+    const profileMenuBtn = document.getElementById('profileMenuBtn');
+    const profilePageModal = document.getElementById('profilePageModal');
+    const backProfileBtn = document.getElementById('backProfileBtn');
+    const changePasswordPageBtn = document.getElementById('changePasswordPageBtn');
+    const changePwModal = document.getElementById('changePwModal');
+    const cancelPwModalBtn = document.getElementById('cancelPwModalBtn');
+    const updatePwBtn = document.getElementById('updatePwBtn');
+    const oldPasswordInput = document.getElementById('oldPasswordInput');
+    const newPasswordInput = document.getElementById('newPasswordInput');
+    const confirmPasswordInput = document.getElementById('confirmPasswordInput');
+    const profileNameDisplay = document.getElementById('profileNameDisplay');
+    const profileRoleDisplay = document.getElementById('profileRoleDisplay');
+    const profileUsernameDisplay = document.getElementById('profileUsernameDisplay');
+    const profilePasswordDisplay = document.getElementById('profilePasswordDisplay');
+    const profileRoleValueDisplay = document.getElementById('profileRoleValueDisplay');
+    const profileExpiryDisplay = document.getElementById('profileExpiryDisplay');
+    
+    const splashVideo = document.getElementById('splashVideo');
+    const progressFill = document.getElementById('progressFill');
+    const skipBtn = document.getElementById('skipBtn');
+    const muteBtn = document.getElementById('muteBtn');
+
+    let currentUsername = "";
+    let currentPassword = "";
+    let splashTimeoutId = null;
+    let splashAnimationFrame = null;
+    
+    const navHome = document.getElementById('navHome');
+    const navWhatsApp = document.getElementById('navWhatsApp');
+    const navInfo = document.getElementById('navInfo');
+    const navTools = document.getElementById('navTools');
+    const pageHome = document.getElementById('pageHome');
+    const pageWhatsApp = document.getElementById('pageWhatsApp');
+    const pageInfo = document.getElementById('pageInfo');
+    const pageTools = document.getElementById('pageTools');
+
+    // SENDER NODES VARIABLES
+    let activeNodes = [];
+    let generatedCode = '';
+    let pendingPhoneNumber = '';
+
+    function setActivePage(page) {
+        pageHome.classList.remove('active-page');
+        pageWhatsApp.classList.remove('active-page');
+        pageInfo.classList.remove('active-page');
+        pageTools.classList.remove('active-page');
+        navHome.classList.remove('active');
+        navWhatsApp.classList.remove('active');
+        navInfo.classList.remove('active');
+        navTools.classList.remove('active');
+        if (page === 'home') { pageHome.classList.add('active-page'); navHome.classList.add('active'); }
+        else if (page === 'whatsapp') { pageWhatsApp.classList.add('active-page'); navWhatsApp.classList.add('active'); }
+        else if (page === 'info') { pageInfo.classList.add('active-page'); navInfo.classList.add('active'); }
+        else if (page === 'tools') { pageTools.classList.add('active-page'); navTools.classList.add('active'); }
+    }
+    
+    navHome.onclick = () => setActivePage('home');
+    navWhatsApp.onclick = () => setActivePage('whatsapp');
+    navInfo.onclick = () => setActivePage('info');
+    navTools.onclick = () => setActivePage('tools');
+    
+    window.toggleMenu = function() {
+        const sb = document.getElementById('sidebar');
+        const ov = document.getElementById('overlay');
+        if (sb && ov) {
+            sb.classList.toggle('active');
+            ov.style.display = sb.classList.contains('active') ? 'block' : 'none';
+        }
+    };
+    
+    function showToast(msg, isSuccess = false) {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = 'toast' + (isSuccess ? ' success' : '');
+        t.innerText = msg;
+        c.appendChild(t);
+        setTimeout(() => { if (t && t.remove) t.remove(); }, 2000);
+    }
+    
+    if (bellIcon) bellIcon.onclick = () => showToast('🔔 Tidak ada notifikasi baru');
+    
+    function updateUsernameCounter() {
+        const len = loginUsername.value.length;
+        usernameCounter.innerText = len + '/8';
+        if (len > 0 && len <= 8) usernameCounter.classList.add('valid');
+        else usernameCounter.classList.remove('valid');
+        validateLoginBtn();
+    }
+    function updatePasswordCounter() {
+        const len = loginPassword.value.length;
+        passwordCounter.innerText = len + '/8';
+        if (len > 0 && len <= 8) passwordCounter.classList.add('valid');
+        else passwordCounter.classList.remove('valid');
+        validateLoginBtn();
+    }
+    function validateLoginBtn() {
+        const valid = loginUsername.value.length > 0 && loginUsername.value.length <= 8 && 
+                      loginPassword.value.length > 0 && loginPassword.value.length <= 8;
+        loginBtn.disabled = !valid;
+        if (valid) loginBtn.classList.remove('disabled');
+        else loginBtn.classList.add('disabled');
+    }
+    loginUsername.addEventListener('input', function() { 
+        if (this.value.length > 8) this.value = this.value.slice(0,8); 
+        updateUsernameCounter(); 
+    });
+    loginPassword.addEventListener('input', function() { 
+        if (this.value.length > 8) this.value = this.value.slice(0,8); 
+        updatePasswordCounter(); 
+    });
+    
+    // PROFILE ICON CLICK (atas kanan)
+    if (profileIcon) {
+        profileIcon.onclick = () => {
+            if (currentUsername) {
+                profileNameDisplay.innerText = currentUsername.toUpperCase();
+                profileUsernameDisplay.innerText = currentUsername;
+                profilePasswordDisplay.innerText = '*'.repeat(currentPassword.length);
+            }
+            profilePageModal.classList.add('show');
+            refreshIcons();
+        };
+    }
+    
+    // PROFILE MENU CLICK (di sidebar)
+    if (profileMenuBtn) {
+        profileMenuBtn.onclick = () => {
+            if (currentUsername) {
+                profileNameDisplay.innerText = currentUsername.toUpperCase();
+                profileUsernameDisplay.innerText = currentUsername;
+                profilePasswordDisplay.innerText = '*'.repeat(currentPassword.length);
+            }
+            profilePageModal.classList.add('show');
+            toggleMenu();
+            refreshIcons();
+        };
+    }
+    
+    // BACK BUTTON PROFILE
+    if (backProfileBtn) {
+        backProfileBtn.onclick = () => {
+            profilePageModal.classList.remove('show');
+        };
+    }
+    
+    // CLICK OUTSIDE PROFILE MODAL
+    profilePageModal.onclick = (e) => {
+        if (e.target === profilePageModal) {
+            profilePageModal.classList.remove('show');
+        }
+    };
+    
+    // CHANGE PASSWORD BUTTON IN PROFILE
+    if (changePasswordPageBtn) {
+        changePasswordPageBtn.onclick = () => {
+            changePwModal.classList.add('show');
+            oldPasswordInput.value = '';
+            newPasswordInput.value = '';
+            confirmPasswordInput.value = '';
+            refreshIcons();
+        };
+    }
+    
+    // CANCEL PASSWORD MODAL
+    if (cancelPwModalBtn) {
+        cancelPwModalBtn.onclick = () => {
+            changePwModal.classList.remove('show');
+        };
+    }
+    
+    // CLICK OUTSIDE PASSWORD MODAL
+    changePwModal.onclick = (e) => {
+        if (e.target === changePwModal) {
+            changePwModal.classList.remove('show');
+        }
+    };
+    
+    // UPDATE PASSWORD
+    if (updatePwBtn) {
+        updatePwBtn.onclick = () => {
+            const oldPass = oldPasswordInput.value.trim();
+            const newPass = newPasswordInput.value.trim();
+            const confirmPass = confirmPasswordInput.value.trim();
+            
+            if (oldPass === '') { showToast('❌ Masukkan password lama!'); return; }
+            if (oldPass !== currentPassword) { showToast('❌ Password lama salah!'); return; }
+            if (newPass === '') { showToast('❌ Masukkan password baru!'); return; }
+            if (newPass !== confirmPass) { showToast('❌ Password baru tidak cocok!'); return; }
+            if (newPass.length > 8) { showToast('❌ Password maksimal 8 karakter!'); return; }
+            
+            currentPassword = newPass;
+            showToast('✅ Password berhasil diubah!', true);
+            changePwModal.classList.remove('show');
+            if (profilePasswordDisplay) profilePasswordDisplay.innerText = '*'.repeat(newPass.length);
+        };
+    }
+    
+    const sendBugBtn = document.getElementById('sendBugBtn');
+    if (sendBugBtn) {
+        sendBugBtn.addEventListener('click', () => {
+            const num = document.getElementById('targetNumber')?.value.trim();
+            const bug = document.getElementById('bugSelect')?.value;
+            if (!num) { showToast('❌ ISI NOMOR TARGET!'); return; }
+            if (!num.startsWith('+')) { showToast('❌ GUNAKAN FORMAT +62'); return; }
+            if (!bug) { showToast('❌ PILIH BUG!'); return; }
+            showToast(`✅ Bug ${bug} terkirim ke ${num}`, true);
+            const sm = document.getElementById('successMsg');
+            if (sm) { sm.innerText = `✅ Berhasil mengirim bug ${bug} ke ${num}.`; sm.style.display = 'block'; setTimeout(() => sm.style.display = 'none', 5000); }
+        });
+    }
+    
+    const devPageBtn = document.getElementById('devPageBtn');
+    if (devPageBtn) devPageBtn.onclick = () => { showToast('LU BUKAN ADMIN/OWNER KOCAK😹'); toggleMenu(); };
+    
+    // CHANNEL WHATSAPP BUTTON - BUKA LINK WHATSAPP CHANNEL
+    if (channelWhatsappBtn) {
+        channelWhatsappBtn.onclick = () => {
+            window.open('https://whatsapp.com/channel/0029Vb6zqwKBA1ewSBGNy90O', '_blank');
+        };
+    }
+    
+    // SENDER NODES FUNCTIONS
+    function formatPhoneNumber(phone) {
+        let cleaned = phone.trim();
+        if (!cleaned.startsWith('+')) {
+            if (cleaned.startsWith('0')) {
+                cleaned = '+62' + cleaned.substring(1);
+            } else if (!cleaned.startsWith('62')) {
+                cleaned = '+62' + cleaned;
+            } else {
+                cleaned = '+' + cleaned;
+            }
+        }
+        return cleaned;
+    }
+
+    function generateRandomCode() {
+        return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    function renderNodesList() {
+        const container = document.getElementById('nodeListContainer');
+        if (!container) return;
+        
+        if (activeNodes.length === 0) {
+            showAllSenderStates();
+            return;
+        }
+
+        container.innerHTML = '';
+        activeNodes.forEach((node) => {
+            const nodeDiv = document.createElement('div');
+            nodeDiv.className = 'node-item';
+            nodeDiv.innerHTML = `
+                <div class="node-info">
+                    <div class="node-avatar">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8b9eff" stroke-width="1.5">
+                            <path d="M21 11.5C21 16.1944 17.1944 20 12.5 20C10.8 20 9.2 19.5 7.9 18.6L3 20L4.5 15.3C3.5 13.9 3 12.2 3 10.5C3 5.80558 6.80558 2 11.5 2C16.1944 2 21 5.80558 21 11.5Z" stroke="currentColor" fill="none"/>
+                            </svg>
+                    </div>
+                    <div class="node-details">
+                        <h4>${node.phone}</h4>
+                        <p>Connected: ${node.date}</p>
+                    </div>
+                </div>
+                <div class="node-status">● ACTIVE</div>
+            `;
+            container.appendChild(nodeDiv);
+        });
+    }
+
+    function showAllSenderStates() {
+        document.getElementById('emptyStateSender').classList.remove('hidden');
+        document.getElementById('formStateSender').classList.add('hidden');
+        document.getElementById('pairingStateSender').classList.add('hidden');
+        document.getElementById('nodesStateSender').classList.add('hidden');
+    }
+
+    function showSenderForm() {
+        document.getElementById('emptyStateSender').classList.add('hidden');
+        document.getElementById('formStateSender').classList.remove('hidden');
+        document.getElementById('pairingStateSender').classList.add('hidden');
+        document.getElementById('nodesStateSender').classList.add('hidden');
+        document.getElementById('phoneNumberSender').value = '';
+    }
+
+    function showSenderPairing(phone) {
+        pendingPhoneNumber = phone;
+        generatedCode = generateRandomCode();
+        document.getElementById('codeDisplaySender').innerText = generatedCode;
+        
+        document.getElementById('emptyStateSender').classList.add('hidden');
+        document.getElementById('formStateSender').classList.add('hidden');
+        document.getElementById('pairingStateSender').classList.remove('hidden');
+        document.getElementById('nodesStateSender').classList.add('hidden');
+    }
+
+    function showSenderNodes() {
+        if (activeNodes.length === 0) {
+            showAllSenderStates();
+            return;
+        }
+        renderNodesList();
+        document.getElementById('emptyStateSender').classList.add('hidden');
+        document.getElementById('formStateSender').classList.add('hidden');
+        document.getElementById('pairingStateSender').classList.add('hidden');
+        document.getElementById('nodesStateSender').classList.remove('hidden');
+    }
+
+    function saveNodesToLocal() {
+        localStorage.setItem('senderNodes', JSON.stringify(activeNodes));
+    }
+
+    // Open modal saat tombol Manage Sender diklik
+    if (manageSenderBtn) {
+        manageSenderBtn.onclick = () => {
+            const saved = localStorage.getItem('senderNodes');
+            if (saved) {
+                try {
+                    activeNodes = JSON.parse(saved);
+                } catch(e) {}
+            }
+            if (activeNodes.length === 0) {
+                showAllSenderStates();
+            } else {
+                showSenderNodes();
+            }
+            senderModal.classList.add('show');
+            refreshIcons();
+        };
+    }
+    
+    // BACK BUTTON SENDER MODAL
+    if (backSenderBtn) {
+        backSenderBtn.onclick = () => {
+            senderModal.classList.remove('show');
+        };
+    }
+
+    // Close modal when clicking outside
+    senderModal.onclick = (e) => {
+        if (e.target === senderModal) {
+            senderModal.classList.remove('show');
+        }
+    };
+
+    // Sender Modal Event Listeners
+    const showFormSenderBtn = document.getElementById('showFormSenderBtn');
+    const cancelSenderBtn = document.getElementById('cancelSenderBtn');
+    const generatePairingBtn = document.getElementById('generatePairingBtn');
+    const finishPairingSenderBtn = document.getElementById('finishPairingSenderBtn');
+    const addNewNodeSenderBtn = document.getElementById('addNewNodeSenderBtn');
+    const copyCodeSenderBtn = document.getElementById('copyCodeSenderBtn');
+    const phoneNumberSender = document.getElementById('phoneNumberSender');
+
+    if (showFormSenderBtn) {
+        showFormSenderBtn.onclick = () => showSenderForm();
+    }
+    if (cancelSenderBtn) {
+        cancelSenderBtn.onclick = () => {
+            if (activeNodes.length === 0) {
+                showAllSenderStates();
+            } else {
+                showSenderNodes();
+            }
+        };
+    }
+    if (generatePairingBtn) {
+        generatePairingBtn.onclick = () => {
+            let phone = phoneNumberSender.value.trim();
+            if (phone === '') {
+                showToast('❌ Masukkan nomor WhatsApp terlebih dahulu!', true);
+                return;
+            }
+            const formattedPhone = formatPhoneNumber(phone);
+            showSenderPairing(formattedPhone);
+        };
+    }
+    if (finishPairingSenderBtn) {
+        finishPairingSenderBtn.onclick = () => {
+            if (!pendingPhoneNumber) return;
+            const now = new Date();
+            const dateStr = `${now.getDate()}/${now.getMonth()+1}/${now.getFullYear()}`;
+            activeNodes.push({
+                phone: pendingPhoneNumber,
+                date: dateStr,
+                code: generatedCode
+            });
+            pendingPhoneNumber = '';
+            generatedCode = '';
+            saveNodesToLocal();
+            showToast(`✅ Sender node berhasil diinisialisasi!\nNomor: ${activeNodes[activeNodes.length-1].phone}`, false);
+            setTimeout(() => {
+                showToast(`📱 WhatsApp notification: Koneksi berhasil dipasangkan.`, false);
+            }, 500);
+            showSenderNodes();
+        };
+    }
+    if (addNewNodeSenderBtn) {
+        addNewNodeSenderBtn.onclick = () => showSenderForm();
+    }
+    if (copyCodeSenderBtn) {
+        copyCodeSenderBtn.onclick = () => {
+            navigator.clipboard.writeText(generatedCode).then(() => {
+                showToast('✅ Kode pairing berhasil disalin!');
+            }).catch(() => {
+                showToast('⚠️ Gagal menyalin kode', true);
+            });
+        };
+    }
+    
+    function finishSplashAndShowApp() {
+        if (splashTimeoutId) clearTimeout(splashTimeoutId);
+        if (splashAnimationFrame) cancelAnimationFrame(splashAnimationFrame);
+        if (splashVideo) { 
+            splashVideo.pause(); 
+            splashVideo.currentTime = 0; 
+        }
+        splashScreen.classList.remove('show', 'glitch-exit');
+        loginPage.style.display = 'none';
+        appWrapper.classList.add('show');
+        setActivePage('home');
+        refreshIcons();
+        
+        const waVideoElem = document.getElementById('waVideo');
+        if (waVideoElem) waVideoElem.play().catch(e => console.log('Video play error:', e));
+    }
+    
+    function startSplash() {
+        if (splashTimeoutId) clearTimeout(splashTimeoutId);
+        if (splashAnimationFrame) cancelAnimationFrame(splashAnimationFrame);
+        
+        splashScreen.classList.remove('glitch-exit');
+        splashScreen.classList.add('show');
+        
+        if (splashVideo) {
+            splashVideo.muted = false;
+            splashVideo.currentTime = 0;
+            splashVideo.loop = true;
+            splashVideo.play().catch(e => console.log('Video autoplay error:', e));
+        }
+        if (progressFill) progressFill.style.width = '0%';
+        
+        const duration = 7000;
+        const start = Date.now();
+        
+        function updateProgressBar() {
+            const elapsed = Date.now() - start;
+            const percent = Math.min(100, (elapsed / duration) * 100);
+            if (progressFill) progressFill.style.width = percent + '%';
+            const statusSpan = document.getElementById('statusText');
+            if (statusSpan) {
+                if (elapsed < 2000) statusSpan.innerText = 'CONNECTING TO SERVER...';
+                else if (elapsed < 4000) statusSpan.innerText = 'LOADING RESOURCES...';
+                else if (elapsed < 6000) statusSpan.innerText = 'DECRYPTING MODULES...';
+                else statusSpan.innerText = 'ALMOST READY...';
+            }
+            if (elapsed >= duration) {
+                finishSplashAndShowApp();
+                return;
+            }
+            splashAnimationFrame = requestAnimationFrame(updateProgressBar);
+        }
+        
+        splashAnimationFrame = requestAnimationFrame(updateProgressBar);
+        splashTimeoutId = setTimeout(finishSplashAndShowApp, duration + 200);
+        
+        if (muteBtn && splashVideo) {
+            const newMute = muteBtn.cloneNode(true);
+            muteBtn.parentNode.replaceChild(newMute, muteBtn);
+            newMute.onclick = () => {
+                splashVideo.muted = !splashVideo.muted;
+                newMute.innerHTML = splashVideo.muted ? '<i data-lucide="volume-x"></i>' : '<i data-lucide="volume-2"></i>';
+                refreshIcons();
+            };
+        }
+        if (skipBtn && splashVideo) {
+            const newSkip = skipBtn.cloneNode(true);
+            skipBtn.parentNode.replaceChild(newSkip, skipBtn);
+            newSkip.onclick = () => {
+                if (splashTimeoutId) clearTimeout(splashTimeoutId);
+                if (splashAnimationFrame) cancelAnimationFrame(splashAnimationFrame);
+                finishSplashAndShowApp();
+            };
+        }
+        refreshIcons();
+    }
+    
+    function doLogout() {
+        splashScreen.classList.add('show', 'glitch-exit');
+        if (splashVideo) { 
+            splashVideo.muted = false; 
+            splashVideo.currentTime = 0; 
+            splashVideo.play().catch(e => console.log(e)); 
+        }
+        setTimeout(() => {
+            splashScreen.classList.remove('show', 'glitch-exit');
+            if (splashVideo) splashVideo.pause();
+            if (loginUsername) loginUsername.value = '';
+            if (loginPassword) loginPassword.value = '';
+            currentUsername = '';
+            currentPassword = '';
+            updateUsernameCounter();
+            updatePasswordCounter();
+            appWrapper.classList.remove('show');
+            loginPage.style.display = 'flex';
+            loginPage.classList.remove('hide');
+            refreshIcons();
+        }, 700);
+    }
+    
+    function doLogin() {
+        const user = loginUsername.value.trim();
+        const pass = loginPassword.value.trim();
+        if (!user || !pass) { showToast('❌ Isi username dan password!'); return; }
+        if (user.length < 1 || user.length > 8) { showToast('❌ Username harus 1-8 karakter!'); return; }
+        if (pass.length < 1 || pass.length > 8) { showToast('❌ Password harus 1-8 karakter!'); return; }
+        
+        currentUsername = user;
+        currentPassword = pass;
+        
+        if (sidebarUsername) sidebarUsername.innerText = user;
+        if (waUsername) waUsername.innerText = user;
+        
+        loginPage.classList.add('hide');
+        startSplash();
+    }
+    
+    if (loginBtn) loginBtn.onclick = doLogin;
+    if (loginUsername) loginUsername.onkeypress = (e) => { if (e.key === 'Enter') doLogin(); };
+    if (loginPassword) loginPassword.onkeypress = (e) => { if (e.key === 'Enter') doLogin(); };
+    if (buyLink) buyLink.onclick = (e) => { e.preventDefault(); showToast('🔒 Halaman pembelian akan segera tersedia'); };
+    
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) logoutBtn.onclick = () => { doLogout(); toggleMenu(); };
+    
+    // DDoS Panel
+    let selectedMethod = 'HTTP';
+    let isAttacking = false;
+    let attackInterval = null, timerInterval = null;
+    let packetCount = 0, attackSeconds = 0, durationSeconds = 60;
+    const targetInput = document.getElementById('targetInput');
+    const portInput = document.getElementById('portInput');
+    const threadsSlider = document.getElementById('threadsSlider');
+    const threadsValue = document.getElementById('threadsValue');
+    const durationSlider = document.getElementById('durationSlider');
+    const attackBtn = document.getElementById('attackBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusValue = document.getElementById('statusValue');
+    const packetsSentEl = document.getElementById('packetsSent');
+    const attackTimeEl = document.getElementById('attackTime');
+    const logContainer = document.getElementById('logContainer');
+    
+    function addLog(msg) {
+        if (!logContainer) return;
+        const div = document.createElement('div');
+        div.innerHTML = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        logContainer.appendChild(div);
+        logContainer.scrollTop = logContainer.scrollHeight;
+        if (logContainer.children.length > 50) logContainer.removeChild(logContainer.children[0]);
+    }
+    function updateStats() { 
+        if (packetsSentEl) packetsSentEl.innerText = packetCount.toLocaleString(); 
+        if (attackTimeEl) attackTimeEl.innerText = attackSeconds + 's'; 
+    }
+    function simulatePacket() { 
+        if (!isAttacking) return; 
+        const threads = threadsSlider ? parseInt(threadsSlider.value) : 100; 
+        packetCount += Math.floor(threads / 10) + 1; 
+        updateStats(); 
+    }
+    function stopAttack() {
+        if (attackInterval) clearInterval(attackInterval);
+        if (timerInterval) clearInterval(timerInterval);
+        isAttacking = false;
+        if (statusValue) { statusValue.className = 'status-value idle'; statusValue.innerHTML = '● IDLE'; }
+        if (attackBtn) attackBtn.disabled = false;
+        addLog(`🛑 Attack stopped. Total packets: ${packetCount.toLocaleString()}`);
+    }
+    function startAttack() {
+        const target = targetInput?.value.trim();
+        const port = portInput?.value.trim();
+        if (!target) { showToast('❌ Masukkan IP / Domain target!'); return; }
+        if (!port) { showToast('❌ Masukkan port!'); return; }
+        stopAttack();
+        isAttacking = true;
+        packetCount = 0;
+        attackSeconds = 0;
+        updateStats();
+        if (statusValue) { statusValue.className = 'status-value attacking'; statusValue.innerHTML = '⚡ ATTACKING ⚡'; }
+        if (attackBtn) attackBtn.disabled = true;
+        addLog(`🚀 STARTING ${selectedMethod} ATTACK on ${target}:${port}`);
+        addLog(`📊 Threads: ${threadsSlider?.value || 100} | Duration: ${durationSeconds}s`);
+        attackInterval = setInterval(simulatePacket, 50);
+        let remaining = durationSeconds;
+        timerInterval = setInterval(() => {
+            if (!isAttacking) return;
+            attackSeconds++;
+            updateStats();
+            remaining--;
+            if (remaining <= 0) { stopAttack(); addLog(`✅ Attack finished! Total packets: ${packetCount.toLocaleString()}`); showToast(`✅ Attack finished! ${packetCount.toLocaleString()} packets sent`, true); }
+        }, 1000);
+    }
+    if (attackBtn) attackBtn.onclick = startAttack;
+    if (stopBtn) stopBtn.onclick = stopAttack;
+    
+    const methodBadges = document.querySelectorAll('.method-badge');
+    methodBadges.forEach(b => {
+        b.onclick = () => {
+            methodBadges.forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+            selectedMethod = b.getAttribute('data-method');
+            addLog(`[*] Method changed to ${selectedMethod}`);
+        };
+    });
+    if (threadsSlider && threadsValue) {
+        threadsSlider.oninput = () => { threadsValue.innerText = threadsSlider.value; };
+    }
+    if (durationSlider) {
+        durationSlider.oninput = () => { durationSeconds = parseInt(durationSlider.value); };
+    }
+    
+    const waVideoElem = document.getElementById('waVideo');
+    if (waVideoElem) {
+        waVideoElem.onerror = function() { 
+            this.style.display = 'none'; 
+            const banner = this.closest('.banner-video');
+            if (banner) banner.style.background = 'linear-gradient(135deg, #1e3a8a, #3b82f6)';
+        };
+    }
+    
+    setInterval(refreshIcons, 200);
+})();
+</script>
+</body>
+  </html>
